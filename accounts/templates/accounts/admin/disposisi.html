@@ -1,0 +1,204 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Disposisi Surat{% endblock %}
+{% block page_title %}Disposisi{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v=64">
+    <link rel="stylesheet" href="{% static 'accounts/css/surat.css' %}?v=57">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Modal visibility logic for existing JS */
+        #modalBuatDisposisi, #modalDetailDisposisi, #modalBuktiPenyelesaian { display: none; }
+        #modalBuatDisposisi.show, #modalDetailDisposisi.show, #modalBuktiPenyelesaian.show { display: flex !important; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Header Controls -->
+    <div class="mb-8 flex items-center justify-end gap-4">
+        <button id="btnBuatDisposisi" class="btn-add-disposisi flex items-center gap-3 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-blue-500/20 active:scale-95">
+            <i class="fas fa-plus text-xs"></i>
+            <span>Buat Disposisi</span>
+        </button>
+    </div>
+
+    <div class="mb-10">
+        <!-- Stats Cards (Premium Style) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Belum Dibaca -->
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-50 group hover:border-blue-200 transition-all">
+                <div class="flex flex-col gap-1">
+                    <span id="countBelumDibaca" class="text-3xl font-black text-blue-600">0</span>
+                    <span class="text-[11px] font-bold text-blue-500 uppercase tracking-wider">Belum Dibaca</span>
+                </div>
+            </div>
+            <!-- Dibaca -->
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-50 group hover:border-purple-200 transition-all">
+                <div class="flex flex-col gap-1">
+                    <span id="countDibaca" class="text-3xl font-black text-purple-600">0</span>
+                    <span class="text-[11px] font-bold text-purple-500 uppercase tracking-wider">Dibaca</span>
+                </div>
+            </div>
+            <!-- Diproses -->
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-50 group hover:border-amber-200 transition-all">
+                <div class="flex flex-col gap-1">
+                    <span id="countDiproses" class="text-3xl font-black text-amber-600">0</span>
+                    <span class="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Diproses</span>
+                </div>
+            </div>
+            <!-- Selesai -->
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl shadow-gray-500/5 border border-gray-50 group hover:border-emerald-200 transition-all">
+                <div class="flex flex-col gap-1">
+                    <span id="countSelesai" class="text-3xl font-black text-emerald-600">0</span>
+                    <span class="text-[11px] font-bold text-emerald-500 uppercase tracking-wider">Selesai</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-transparent lg:bg-white rounded-[2.5rem] shadow-none lg:shadow-xl lg:shadow-gray-500/5 border-none lg:border lg:border-gray-100 overflow-hidden">
+        <div class="p-8 border-b border-gray-50 flex items-center justify-between bg-white rounded-t-[2.5rem] lg:rounded-none lg:bg-transparent shadow-sm lg:shadow-none mb-6 lg:mb-0">
+            <h3 class="text-lg font-black text-gray-800 flex items-center gap-3">
+                <i class="fas fa-history text-blue-500"></i>
+                Riwayat Disposisi
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse block lg:table">
+                <thead class="hidden lg:table-header-group">
+                    <tr class="bg-gray-50/50">
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">Nomor Surat</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">Sifat Surat</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">Ke Staff</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100">Instruksi</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 whitespace-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center whitespace-nowrap">Status</th>
+                        <th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center whitespace-nowrap">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="disposisiTableBody" class="divide-y divide-gray-50 block lg:table-row-group">
+                    {% for d in disposisi_list %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group cursor-pointer block lg:table-row bg-white border border-gray-100 lg:border-none rounded-2xl lg:rounded-none p-5 mb-4 lg:mb-0 shadow-sm lg:shadow-none flex flex-col lg:flex-row gap-3 lg:gap-0 relative" data-status="{{ d.status|lower }}" data-id="{{ d.id }}">
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <span class="text-sm font-bold text-blue-600 hover:underline block truncate w-3/4 lg:w-auto">{{ d.surat.nomor_surat }}</span>
+                        </td>
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Sifat</span>
+                                {% if d.prioritas == 'segera' %}
+                                <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-50 text-red-600 border border-red-100 shadow-sm">Segera</span>
+                                {% else %}
+                                <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">Biasa</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Ke Staff</span>
+                                <div class="flex items-center gap-3">
+                                    {% if d.penerima_disposisi.profile.foto_profil %}
+                                    <img src="{{ d.penerima_disposisi.profile.foto_profil.url }}" 
+                                        class="border border-gray-100 shadow-sm shrink-0" alt="User" style="width: 32px !important; height: 32px !important; border-radius: 50% !important; object-fit: cover !important; object-position: top center !important;">
+                                    {% else %}
+                                    <div class="bg-gradient-to-br {% if d.penerima_disposisi.is_superuser %}from-blue-500 to-indigo-600{% else %}from-purple-500 to-pink-600{% endif %} border-2 border-white shadow-sm shrink-0" style="width: 32px !important; height: 32px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; color: white !important; font-size: 10px !important; font-weight: bold !important;">
+                                        {{ d.penerima_disposisi.username|slice:":2"|upper }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-gray-700 whitespace-nowrap">{{ d.penerima_disposisi.get_full_name|default:d.penerima_disposisi.username }}</span>
+                                        <span class="text-[10px] text-gray-400 whitespace-nowrap hidden lg:block">Staff Pelaksana</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Instruksi</span>
+                                <p class="text-xs text-gray-600 line-clamp-2 lg:line-clamp-1 max-w-none lg:max-w-[240px]">{{ d.instruksi|default:"Tidak ada instruksi khusus" }}</p>
+                            </div>
+                        </td>
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100 whitespace-normal lg:whitespace-nowrap">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Tanggal</span>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-700 whitespace-nowrap">{{ d.tanggal_dibuat|date:"d M Y" }}</span>
+                                    <span class="text-[10px] text-gray-400 whitespace-nowrap">{{ d.tanggal_dibuat|date:"H:i" }} WIB</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="absolute top-5 right-5 block lg:relative lg:top-0 lg:right-0 lg:table-cell text-center border-none lg:border-b lg:border-gray-100">
+                            {% if d.status == 'belum_dibaca' or d.status == 'baru' %}
+                            <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-50 text-blue-600 border border-blue-100 shadow-sm">Belum Dibaca</span>
+                            {% elif d.status == 'dibaca' %}
+                            <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-purple-50 text-purple-600 border border-purple-100 shadow-sm">Dibaca</span>
+                            {% elif d.status == 'diproses' %}
+                            <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-600 border border-amber-100 shadow-sm">Diproses</span>
+                            {% elif d.status == 'selesai' %}
+                            <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-sm">Selesai</span>
+                            {% else %}
+                            <span class="inline-block whitespace-nowrap px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-50 text-gray-600 border border-gray-100 shadow-sm">{{ d.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-0 lg:px-6 py-0 lg:py-4 block lg:table-cell border-none lg:border-b lg:border-gray-100 mt-2 lg:mt-0 border-t border-gray-50 lg:border-none pt-3 lg:pt-0">
+                            <div class="flex lg:justify-center justify-end gap-2 whitespace-nowrap">
+                                <button class="btn-lihat-disposisi w-9 h-9 rounded-xl flex items-center justify-center text-blue-600 bg-blue-50 hover:bg-blue-600 hover:text-white transition-all shadow-sm shrink-0 border border-blue-100 lg:border-none" title="Lihat Detail">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                                {% if d.status == 'belum_dibaca' or d.status == 'baru' %}
+                                <button type="button" onclick="event.stopPropagation(); openBatalModal('{{ d.id }}', '{{ d.surat.nomor_surat|escapejs }}');" class="w-9 h-9 rounded-xl flex items-center justify-center text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all shadow-sm shrink-0 border border-red-100 lg:border-none" title="Batal Disposisi">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                                {% elif d.status == 'selesai' %}
+                                <button type="button" class="btn-lihat-bukti w-9 h-9 rounded-xl flex items-center justify-center text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition-all shadow-sm shrink-0 border border-emerald-100 lg:border-none" 
+                                    title="Lihat Bukti Penyelesaian" 
+                                    data-nomor="{{ d.surat.nomor_surat }}"
+                                    data-staff="{{ d.penerima_disposisi.get_full_name|default:d.penerima_disposisi.username }}"
+                                    data-tanggal="{% if d.tanggal_selesai %}{{ d.tanggal_selesai|date:'d M Y, H:i WIB' }}{% else %}{{ d.tanggal_dibuat|date:'d M Y, H:i WIB' }}{% endif %}"
+                                    data-catatan="{{ d.catatan_penyelesaian|default:'Staff telah menyelesaikan tugas ini tanpa catatan khusus.' }}"
+                                    data-file="{% if d.file_bukti %}{{ d.file_bukti.url }}{% else %}none{% endif %}"
+                                    onclick="event.stopPropagation(); showBuktiModal(this);">
+                                    <i class="fas fa-file-alt text-xs"></i>
+                                </button>
+                                {% else %}
+                                <form method="POST" action="{% url 'selesaikan_disposisi' d.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" onclick="event.stopPropagation();" class="w-9 h-9 rounded-xl flex items-center justify-center text-emerald-600 bg-emerald-50 hover:bg-emerald-600 hover:text-white transition-all shadow-sm shrink-0 border border-emerald-100 lg:border-none" title="Selesaikan">
+                                        <i class="fas fa-check text-xs"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="block lg:table-row bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                        <td colspan="7" class="px-6 py-16 text-center block lg:table-cell">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-inbox text-2xl text-gray-300"></i>
+                                </div>
+                                <p class="text-sm text-gray-400 font-medium">Belum ada data disposisi.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+{% include "accounts/admin/modals_disposisi.html" %}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'accounts/js/disposisi.js' %}?v=52"></script>
+{% endblock %}

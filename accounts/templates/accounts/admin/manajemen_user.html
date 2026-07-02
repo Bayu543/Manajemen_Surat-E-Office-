@@ -1,0 +1,144 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Manajemen User{% endblock %}
+{% block page_title %}Manajemen Pengguna{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Modal visibility logic for existing JS */
+        #modalTambahUser, #modalEditUser, #modalKonfirmasiHapus { display: none; }
+        #modalTambahUser.show, #modalEditUser.show, #modalKonfirmasiHapus.show { display: flex !important; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Toolbar Section -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col sm:flex-row gap-5 justify-between items-center">
+        <!-- Title & Filter -->
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <i class="fas fa-filter text-sm"></i>
+            </div>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block mt-0.5">Filter Role:</span>
+            <div class="flex bg-gray-50 p-1.5 rounded-xl border border-gray-100 ml-0 sm:ml-2">
+                <button type="button" class="filter-role-btn px-5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-sm border border-gray-100 transition-all" data-role-filter="semua">Semua</button>
+                <button type="button" class="filter-role-btn px-5 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all" data-role-filter="admin">Admin</button>
+                <button type="button" class="filter-role-btn px-5 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all" data-role-filter="staff">Staff</button>
+            </div>
+        </div>
+        
+        <!-- Action Button -->
+        <button id="btnTambahUser" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-200/50 text-sm group active:scale-95">
+            <i class="fas fa-user-plus text-xs group-hover:scale-110 transition-transform"></i>
+            <span>Tambah Pengguna</span>
+        </button>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="w-full relative">
+        <!-- User Grid/Table Container -->
+        <div id="userListContainer" class="w-full transition-all duration-500 bg-transparent lg:bg-white rounded-none lg:rounded-[2.5rem] shadow-none lg:shadow-xl lg:shadow-gray-500/5 border-none lg:border lg:border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse block lg:table">
+                    <thead class="hidden lg:table-header-group">
+                        <tr class="bg-gray-50/50 border-b border-gray-100">
+                            <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pengguna</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kontak & Username</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Role & Instansi</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody" class="divide-y divide-gray-50 block lg:table-row-group">
+                        {% for u in user_list %}
+                        <tr class="hover:bg-gray-50/30 transition-colors group block lg:table-row bg-white border border-gray-100 lg:border-none rounded-2xl lg:rounded-none p-5 mb-4 lg:mb-0 shadow-sm lg:shadow-none flex flex-col lg:flex-row gap-3 lg:gap-0 relative" data-id="{{ u.id }}">
+                            <td class="px-0 lg:px-6 py-0 lg:py-5 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                                <div class="flex items-center gap-4">
+                                    <div class="relative">
+                                        {% if u.profile.foto_profil %}
+                                        <img src="{{ u.profile.foto_profil.url }}" class="border-2 border-white shadow-sm shrink-0" style="width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; border-radius: 50% !important; object-fit: cover !important; object-position: top center !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                                        {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ u.get_full_name|default:u.username|urlencode }}&background={% if u.is_superuser %}3B82F6{% else %}10B981{% endif %}&color=fff" class="border-2 border-white shadow-sm shrink-0" style="width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; border-radius: 50% !important; object-fit: cover !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                                        {% endif %}
+                                        <div class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white {% if u.is_active %}bg-emerald-500{% else %}bg-gray-300{% endif %}"></div>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-bold text-gray-800">{{ u.get_full_name|default:u.username }}</h4>
+                                        <p class="text-[10px] text-gray-400 font-medium">Terdaftar: {{ u.date_joined|date:"d M Y" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-0 lg:px-6 py-0 lg:py-5 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                                <div class="flex items-center lg:block">
+                                    <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Kontak</span>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 text-xs text-gray-600">
+                                            <i class="fas fa-envelope text-[10px] text-gray-300"></i>
+                                            <span>{{ u.email }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-xs text-gray-400">
+                                            <i class="fas fa-user-circle text-[10px] text-gray-200"></i>
+                                            <span class="font-mono">@{{ u.username }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-0 lg:px-6 py-0 lg:py-5 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                                <div class="flex items-center lg:block">
+                                    <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Role</span>
+                                    <div class="space-y-2 flex flex-row lg:flex-col items-center lg:items-start gap-3 lg:gap-1">
+                                        <div class="flex">
+                                            {% if u.is_superuser %}
+                                            <span class="badge-status-surat" style="background: #DBEAFE; color: #3B82F6;">Admin</span>
+                                            {% else %}
+                                            <span class="badge-status-surat diproses">Staff</span>
+                                            {% endif %}
+                                        </div>
+                                        <p class="text-xs font-bold text-gray-700 ml-1 lg:mt-0 mt-[-4px]">{{ u.profile.jabatan|default:"-" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="absolute top-5 right-5 block lg:relative lg:top-0 lg:right-0 lg:table-cell text-center border-none lg:border-b lg:border-gray-100">
+                                {% if u.is_active %}
+                                <span class="text-emerald-500 text-xs font-bold flex items-center justify-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Aktif
+                                </span>
+                                {% else %}
+                                <span class="text-gray-400 text-xs font-bold">Nonaktif</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-0 lg:px-6 py-0 lg:py-5 block lg:table-cell border-none lg:border-b lg:border-gray-100 mt-2 lg:mt-0 border-t border-gray-50 lg:border-none pt-3 lg:pt-0">
+                                <div class="flex lg:justify-center justify-end gap-3">
+                                    <button class="btn-edit-user w-9 lg:w-8 h-9 lg:h-8 rounded-xl lg:rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-all flex items-center justify-center border border-gray-100 lg:border-none shadow-sm lg:shadow-none" 
+                                        title="Edit User" data-id="{{ u.id }}" data-nama="{{ u.get_full_name|default:u.username }}" data-email="{{ u.email }}" 
+                                        data-jabatan="{{ u.profile.jabatan }}" data-role="{% if u.is_superuser %}admin{% else %}staff{% endif %}" data-status="{% if u.is_active %}aktif{% else %}nonaktif{% endif %}">
+                                        <i class="fas fa-edit text-xs"></i>
+                                    </button>
+                                    {% if u.id != user.id %}
+                                    <button class="btn-hapus-user w-9 lg:w-8 h-9 lg:h-8 rounded-xl lg:rounded-lg bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center border border-gray-100 lg:border-none shadow-sm lg:shadow-none" title="Hapus" data-id="{{ u.id }}">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "accounts/admin/modals_user.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'accounts/js/manajemen_user.js' %}?v=54"></script>
+{% endblock %}

@@ -1,0 +1,410 @@
+{% load static %}
+<!-- Modal Buat Disposisi -->
+<div id="modalBuatDisposisi" class="fixed inset-0 z-[1050] hidden flex items-center justify-center p-4 md:p-6">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" id="backdropDisposisi"></div>
+
+    <!-- Modal Content -->
+    <div class="relative bg-white w-full max-w-2xl rounded-3xl shadow-2xl shadow-blue-900/10 transform transition-all flex flex-col max-h-[85vh]">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Buat Disposisi Baru</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Delegasikan Tugas ke Staff Pelaksana</p>
+            </div>
+            <button id="closeModalDisposisi" class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <form id="formBuatDisposisi" class="flex flex-col overflow-hidden">
+            <!-- Body (Scrollable) -->
+            <div class="p-8 overflow-y-auto space-y-6">
+                {% csrf_token %}
+                
+                <!-- Pilih Surat -->
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Surat Masuk <span class="text-red-500">*</span></label>
+                    <div class="relative group">
+                        <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors"></i>
+                        <select name="surat_id"
+                            class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all appearance-none">
+                            <option value="">-- Pilih Surat yang akan didisposisikan --</option>
+                            {% for s in surat_list %}
+                            <option value="{{ s.id }}">{{ s.nomor_surat }} - {{ s.perihal|truncatechars:60 }}</option>
+                            {% endfor %}
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none text-[10px]"></i>
+                    </div>
+                </div>
+
+                <!-- Prioritas & Tenggat -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Prioritas Tugas</label>
+                        <div class="flex items-center gap-4 bg-gray-50 p-2 rounded-2xl border border-gray-100">
+                            <label class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl cursor-pointer transition-all hover:bg-white has-[:checked]:bg-white has-[:checked]:text-blue-600 has-[:checked]:shadow-sm">
+                                <input type="radio" name="prioritas" value="biasa" checked class="hidden">
+                                <span class="text-xs font-bold uppercase tracking-wider">Biasa</span>
+                            </label>
+                            <label class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl cursor-pointer transition-all hover:bg-white has-[:checked]:bg-white has-[:checked]:text-red-600 has-[:checked]:shadow-sm">
+                                <input type="radio" name="prioritas" value="segera" class="hidden">
+                                <span class="text-xs font-bold uppercase tracking-wider">Segera</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tenggat Waktu</label>
+                        <div class="relative group">
+                            <i class="fas fa-calendar-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-blue-500 transition-colors"></i>
+                            <input type="date" name="tenggat_waktu" 
+                                class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pilih Staff -->
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Pilih Staff Penerima <span class="text-red-500">*</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 max-h-48 overflow-y-auto no-scrollbar">
+                        {% for staff in staff_list %}
+                        <label class="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-50 cursor-pointer transition-all hover:border-blue-500 hover:shadow-sm group has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/30">
+                            <div class="relative flex items-center">
+                                <input type="checkbox" name="staff_ids" value="{{ staff.id }}" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-100 border-gray-200">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                {% if staff.profile.foto_profil %}
+                                <img src="{{ staff.profile.foto_profil.url }}" class="border border-white shadow-sm shrink-0" style="width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important; border-radius: 50% !important; object-fit: cover !important; object-position: top center !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                                {% else %}
+                                <div class="bg-gradient-to-br from-purple-500 to-pink-600 shrink-0 shadow-sm" style="width: 28px !important; height: 28px !important; min-width: 28px !important; min-height: 28px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; color: white !important; font-[10px] !important; font-weight: bold !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                                    {{ staff.username|slice:":2"|upper }}
+                                </div>
+                                {% endif %}
+                                <span class="text-xs font-bold text-gray-600 group-hover:text-blue-600 transition-colors">{{ staff.get_full_name|default:staff.username }}</span>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Instruksi -->
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Input Instruksi <span class="text-red-500">*</span></label>
+                    <textarea name="instruksi" rows="3" placeholder="Tulis instruksi atau arahan pengerjaan surat..."
+                        class="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end gap-3 shrink-0 rounded-b-3xl">
+                <button id="btnBatalDisposisi" type="button" class="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-400 hover:text-gray-600 transition-all">Batal</button>
+                <button type="submit" class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-100 flex items-center gap-2">
+                    <span>Kirim Disposisi</span>
+                    <i class="fas fa-paper-plane text-[10px] opacity-50"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detail & Tracking Disposisi Premium -->
+<div id="modalDetailDisposisi" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <!-- Backdrop with transparent dark shadow -->
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" id="closeBackdropDetail"></div>
+    
+    <!-- Modal Content Card -->
+    <div class="relative bg-white w-full max-w-3xl rounded-[2rem] shadow-2xl shadow-blue-950/30 overflow-hidden flex flex-col max-h-[80vh] border border-gray-100 z-10">
+        
+        <!-- Header Modal -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Detail Pelacakan Disposisi Surat</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Sistem Pengawasan & Tracking E-Office</p>
+            </div>
+            <button id="closeDetailDisposisi" class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body Scrollable Content -->
+        <div class="p-6 overflow-y-auto space-y-6 divide-y divide-gray-100 no-scrollbar">
+            
+            <!-- BAGIAN 1: Informasi Surat Induk -->
+            <div class="space-y-5 pt-0">
+                <div class="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <i class="fas fa-file-invoice text-blue-600 text-sm"></i>
+                    <span>1. Informasi Surat Induk</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/80 p-6 rounded-3xl border border-gray-100/80">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nomor Surat</span>
+                        <p id="detailNomorSurat" class="text-sm font-black text-blue-600">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Asal Instansi / Pengirim</span>
+                        <p id="detailPengirim" class="text-sm font-bold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1 md:col-span-2">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Perihal</span>
+                        <p id="detailPerihal" class="text-sm font-semibold text-gray-700 leading-relaxed">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Tanggal Surat</span>
+                        <p id="detailTanggalSurat" class="text-sm font-bold text-gray-800">-</p>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Tanggal Diterima E-Office</span>
+                        <p id="detailTanggalDiterima" class="text-sm font-bold text-gray-800">-</p>
+                    </div>
+                    
+                    <!-- Tombol Akses Dokumen Asli -->
+                    <div class="md:col-span-2 flex items-center justify-between border-t border-gray-100/85 pt-4 mt-2">
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Dokumen Lampiran</span>
+                            <p class="text-[11px] text-gray-400 font-medium">Buka berkas surat untuk melihat isi lampiran asli</p>
+                        </div>
+                        <a id="btnLihatDokumenAsli" href="#" target="_blank" class="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all shadow-md shadow-blue-600/10 active:scale-95">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Lihat Dokumen Surat</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BAGIAN 2: Detail Instruksi Pimpinan -->
+            <div class="space-y-5 pt-8">
+                <div class="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <i class="fas fa-comment-dots text-indigo-600 text-sm"></i>
+                    <span>2. Detail Instruksi Pimpinan</span>
+                </div>
+
+                <div class="bg-indigo-50/50 border border-indigo-100 rounded-3xl p-7 relative overflow-hidden shadow-inner">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+                    <div class="flex items-center justify-between flex-wrap gap-4 mb-5 border-b border-indigo-100/80 pb-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold text-indigo-900 uppercase tracking-wider">Sifat / Prioritas:</span>
+                            <span id="detailPrioritasBadge" class="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-sm">-</span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs text-indigo-600 font-semibold">
+                            <i class="fas fa-clock"></i>
+                            <span id="detailTanggalDisposisi">-</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-2">Isi Instruksi / Arahan</span>
+                        <p id="detailInstruksiPimpinan" class="text-sm font-medium text-indigo-950 leading-relaxed bg-white/80 p-5 rounded-2xl border border-indigo-100/50 whitespace-pre-wrap shadow-sm">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BAGIAN 3: Log Progress & Hasil Kerja Staff -->
+            <div class="space-y-6 pt-8">
+                <div class="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    <i class="fas fa-tasks text-emerald-600 text-sm"></i>
+                    <span>3. Log Progress & Tracking Pelaksanaan</span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Kolom Kiri: Staff & Status -->
+                    <div class="bg-gray-50/80 p-6 rounded-3xl border border-gray-100/80 flex flex-col justify-between gap-6">
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-3">Staff Penerima Tugas</span>
+                            <div class="flex items-center gap-4 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm">
+                                <img id="detailStaffAvatar" src="" class="shrink-0 border-2 border-white shadow-sm" style="width: 48px !important; height: 48px !important; min-width: 48px !important; min-height: 48px !important; border-radius: 50% !important; object-fit: cover !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;" alt="Avatar">
+                                <div class="overflow-hidden">
+                                    <h4 id="detailStaffNama" class="text-sm font-black text-gray-800 truncate">-</h4>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Staff Pelaksana</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Status Terkini</span>
+                            <div id="detailStatusBar" class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black uppercase tracking-wider shadow-sm">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Kolom Kanan: Timeline & Bukti Kerja -->
+                    <div class="lg:col-span-2 bg-gray-50/80 p-6 rounded-3xl border border-gray-100/80 space-y-6">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Timeline Aktivitas</span>
+                        
+                        <!-- Timeline -->
+                        <div class="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-gray-200">
+                            <!-- Langkah 1: Instruksi Dikirim -->
+                            <div class="relative flex items-start gap-4 pl-8">
+                                <div class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-sm animate-pulse"></div>
+                                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex-1 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-black text-gray-800">Instruksi Dikirim</span>
+                                        <span id="timelineTanggalDikirim" class="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-lg">-</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-400 font-medium">Instruksi disposisi diterbitkan dan dikirimkan oleh pimpinan.</p>
+                                </div>
+                            </div>
+
+                            <!-- Langkah 2: Dibaca Staf -->
+                            <div class="relative flex items-start gap-4 pl-8">
+                                <div class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-purple-500 border-4 border-white shadow-sm"></div>
+                                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex-1 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-black text-gray-800">Dibaca oleh Staff</span>
+                                        <span id="detailTanggalDibaca" class="text-[11px] font-semibold text-purple-600 bg-purple-50 px-2.5 py-0.5 rounded-lg">-</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-400 font-medium">Waktu pertama kali staff pelaksana melihat lembar instruksi.</p>
+                                </div>
+                            </div>
+
+                            <!-- Langkah 3: Diselesaikan Staf -->
+                            <div class="relative flex items-start gap-4 pl-8">
+                                <div id="dotSelesai" class="absolute left-1.5 top-1.5 w-4 h-4 rounded-full bg-gray-300 border-4 border-white shadow-sm transition-colors"></div>
+                                <div class="bg-white p-4 rounded-2xl border border-gray-100 flex-1 shadow-sm">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-xs font-black text-gray-800">Diselesaikan oleh Staff</span>
+                                        <span id="detailTanggalSelesai" class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-lg">-</span>
+                                    </div>
+                                    <p class="text-[11px] text-gray-400 font-medium">Tugas ditandai selesai dan bukti pengerjaan dilaporkan.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Area Catatan & Bukti (Muncul jika Selesai) -->
+                        <div id="detailCatatanStaffWrapper" class="hidden pt-4 border-t border-gray-200/60 space-y-4 animate-in fade-in duration-300">
+                            <div class="space-y-2">
+                                <span class="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">Catatan Penyelesaian dari Staff:</span>
+                                <div id="detailCatatanStaff" class="p-4 bg-emerald-50/60 border border-emerald-100 text-sm font-medium text-emerald-950 rounded-2xl whitespace-pre-wrap leading-relaxed shadow-sm"></div>
+                            </div>
+                            <div id="btnUnduhBuktiStaffWrapper">
+                                <a id="btnUnduhBuktiStaff" href="#" target="_blank" class="flex items-center justify-center gap-3 w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/20 active:scale-95 group">
+                                    <i class="fas fa-cloud-download-alt text-lg group-hover:translate-y-0.5 transition-transform"></i>
+                                    <span>Unduh File Bukti Kerja Staff</span>
+                                </a>
+                            </div>
+                            <div id="noBuktiStaffWrapper" class="hidden p-3.5 bg-amber-50 border border-amber-100 rounded-2xl text-amber-600 text-xs font-bold flex items-center justify-center gap-2 shadow-sm">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Tugas diselesaikan tanpa melampirkan file dokumen bukti.</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Modal -->
+        <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/80 flex items-center justify-end gap-4 shrink-0 rounded-b-[2rem]">
+            <button id="btnCloseDetailDisposisi" class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-xl transition-all active:scale-95 shadow-sm">
+                Tutup Jendela Tracking
+            </button>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Modal Bukti Penyelesaian -->
+<div id="modalBuktiPenyelesaian" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" onclick="closeBuktiModal()"></div>
+    
+    <div class="relative bg-white w-full max-w-xl rounded-[2rem] shadow-2xl shadow-emerald-950/20 overflow-hidden flex flex-col z-10 border border-gray-100">
+        <!-- Header Modal -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Bukti Penyelesaian</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Laporan Penyelesaian dari Staff</p>
+            </div>
+            <button onclick="closeBuktiModal()" class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Meta Data Section (Di bawah sub-judul) -->
+        <div class="px-8 py-5 bg-gray-50 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
+            <div class="space-y-1">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Nomor Surat</span>
+                <p id="buktiNomorSurat" class="text-xs font-bold text-gray-500 truncate">-</p>
+            </div>
+            <div class="space-y-1">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Staff Pelaksana</span>
+                <p id="buktiStaffNama" class="text-xs font-bold text-gray-500 truncate">-</p>
+            </div>
+            <div class="space-y-1 sm:col-span-1">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Waktu Selesai</span>
+                <p id="buktiWaktuSelesai" class="text-xs font-bold text-gray-500">-</p>
+            </div>
+        </div>
+
+        <!-- Body Content -->
+        <div class="p-8 space-y-6 overflow-y-auto max-h-[60vh]">
+            <!-- Catatan Penyelesaian -->
+            <div class="space-y-2.5">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block flex items-center gap-2">
+                    <i class="fas fa-comment-dots text-emerald-600"></i>
+                    <span>Catatan Penyelesaian</span>
+                </label>
+                <div id="buktiCatatan" class="p-5 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-sm font-medium text-emerald-950 whitespace-pre-wrap leading-relaxed min-h-[90px] shadow-sm"></div>
+            </div>
+
+            <!-- File Bukti Kerja -->
+            <div class="space-y-2.5">
+                <label class="text-xs font-bold text-gray-400 uppercase tracking-wider block flex items-center gap-2">
+                    <i class="fas fa-paperclip text-blue-600"></i>
+                    <span>Lampiran Bukti Dokumen</span>
+                </label>
+                
+                <!-- Jika ada file -->
+                <div id="buktiFileWrapper">
+                    <a id="buktiFileLink" href="#" target="_blank" class="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-blue-600/20 active:scale-95 group">
+                        <div class="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shrink-0 border border-white/20 group-hover:scale-105 transition-transform">
+                            <i class="fas fa-file-download text-xl"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden">
+                            <p class="truncate font-black text-white">Unduh File Bukti Penyelesaian</p>
+                            <p class="text-[10px] text-blue-100 font-semibold uppercase tracking-wider">Format Dokumen Terlampir (PDF / Gambar / Doc)</p>
+                        </div>
+                        <i class="fas fa-arrow-right mr-2 opacity-80 group-hover:translate-x-1 transition-transform"></i>
+                    </a>
+                </div>
+
+                <!-- Jika kosong (minimalis list/badge abu-abu) -->
+                <div id="buktiNoFile" class="hidden p-4 bg-gray-50 border border-gray-200/80 rounded-2xl text-gray-500 text-xs font-medium flex items-center gap-3 shadow-sm">
+                    <div class="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 shrink-0 font-bold">
+                        <i class="fas fa-folder-minus"></i>
+                    </div>
+                    <span>Tidak ada file bukti dokumen yang dilampirkan oleh staff pelaksana.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-8 py-5 border-t border-gray-100 bg-gray-50 flex justify-end shrink-0 rounded-b-[2.5rem]">
+            <button onclick="closeBuktiModal()" class="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm rounded-2xl transition-all active:scale-95 shadow-sm">Tutup Jendela Laporan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Batal Disposisi -->
+<div id="modalKonfirmasiBatal" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" onclick="closeBatalModal()"></div>
+    
+    <div class="relative bg-white w-full max-w-sm rounded-[1.75rem] shadow-2xl p-6 text-center animate-in zoom-in duration-200 z-10 border border-gray-100">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner border border-red-200">
+            <i class="fas fa-exclamation-triangle animate-pulse"></i>
+        </div>
+        <h2 class="text-lg font-black text-gray-900 mb-1.5">Batal Disposisi?</h2>
+        <p class="text-xs font-medium text-gray-500 mb-4 px-2">Apakah Anda yakin ingin membatalkan dan menarik kembali disposisi ini?</p>
+        
+        <div class="p-3 bg-gray-50 border border-gray-200/80 rounded-xl mb-6 inline-block max-w-full px-5 shadow-sm">
+            <span class="text-[10px] font-bold text-gray-400 block uppercase tracking-widest">Surat Induk</span>
+            <span id="batalNomorSurat" class="text-xs font-black text-red-600 truncate block">-</span>
+        </div>
+        
+        <form id="formBatalDisposisi" method="POST" action="">
+            {% csrf_token %}
+            <div class="flex gap-3">
+                <button type="button" onclick="closeBatalModal()" class="flex-1 py-3.5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold transition-all active:scale-95 text-sm shadow-sm">Kembali</button>
+                <button type="submit" class="flex-1 py-3.5 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black shadow-lg shadow-red-600/20 transition-all active:scale-95 text-sm">Ya, Batalkan</button>
+            </div>
+        </form>
+    </div>
+</div>

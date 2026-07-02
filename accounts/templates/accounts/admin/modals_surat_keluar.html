@@ -1,0 +1,166 @@
+<!-- Modal Konfirmasi Approve -->
+<div id="modalKonfirmasiApprove" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    
+    <!-- Content -->
+    <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in duration-200">
+        <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Setujui Surat?</h2>
+        <p class="text-sm text-gray-500 mb-8 px-2">Pastikan seluruh data surat keluar sudah sesuai sebelum disetujui untuk penomoran.</p>
+        
+        <div class="flex gap-3">
+            <button id="btnBatalApprove" class="flex-1 py-3 rounded-2xl border border-gray-100 text-gray-400 font-bold hover:bg-gray-50 transition-all">Batal</button>
+            <button id="btnKonfirmasiApprove" class="flex-1 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 transition-all">Ya, Setujui</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail Surat Keluar -->
+<div id="modalDetailSuratKeluar" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    
+    <!-- Content -->
+    <div class="relative bg-white w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <!-- Header -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800">Detail Surat Keluar</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Informasi Lengkap Draf Surat</p>
+            </div>
+            <button id="closeDetailKeluar" class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-8 space-y-6 flex-1 overflow-y-auto no-scrollbar">
+            <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100">
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest block mb-1">Nomor Surat</span>
+                <div class="text-lg font-bold text-blue-700" id="detailNomorSuratKeluar">-</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Penerima</span>
+                    <div class="text-sm font-bold text-gray-800" id="detailPenerimaKeluar">-</div>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Dibuat Oleh</span>
+                    <div class="text-sm font-bold text-gray-800" id="detailPembuatKeluar">-</div>
+                </div>
+            </div>
+
+            <div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Perihal</span>
+                <div class="text-sm text-gray-600 leading-relaxed font-medium bg-gray-50 p-4 rounded-xl" id="detailPerihalKeluar">-</div>
+            </div>
+
+            <!-- Area Dokumen -->
+            <div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Dokumen Lampiran</span>
+                <a href="#" id="detailFileKeluar" target="_blank" class="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-bold text-gray-800 group-hover:text-blue-700">Lihat/Unduh Dokumen</div>
+                        <div class="text-xs text-gray-500">Klik untuk membuka di tab baru</div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Riwayat Status -->
+            <div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-3">Riwayat Status</span>
+                <div class="relative border-l-2 border-gray-100 ml-3 space-y-4 pb-2">
+                    <div class="relative pl-6">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-gray-200 border-2 border-white"></div>
+                        <div class="text-xs font-bold text-gray-800">Draf Dibuat</div>
+                        <div class="text-[10px] text-gray-400" id="detailTimelineDraft">-</div>
+                    </div>
+                    <div class="relative pl-6" id="timelineDiajukanContainer">
+                        <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-amber-400 border-2 border-white shadow-sm shadow-amber-200"></div>
+                        <div class="text-xs font-bold text-gray-800">Diajukan ke Admin</div>
+                        <div class="text-[10px] text-gray-400" id="detailTimelineDiajukan">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between py-2 border-t border-gray-100 pt-4">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status Saat Ini</span>
+                <div id="detailStatusKeluar">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-gray-100 text-gray-500 border border-gray-200">Draf</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-8 py-6 border-t border-gray-50 bg-gray-50/50 flex flex-col sm:flex-row gap-3 justify-end items-center shrink-0">
+            <button id="btnCloseDetailKeluar" class="w-full sm:w-auto px-6 py-2.5 bg-white border border-gray-200 text-gray-500 rounded-xl font-bold text-sm hover:bg-gray-50 transition-all shadow-sm">Tutup Detail</button>
+            
+            <!-- Action Buttons (Shown when 'Diajukan') -->
+            <div id="actionButtonsKeluar" class="w-full sm:w-auto flex-col sm:flex-row gap-3 hidden">
+                <button id="btnDetailRevisi" class="w-full sm:w-auto px-6 py-2.5 bg-white border border-red-200 text-red-600 rounded-xl font-bold text-sm hover:bg-red-50 hover:border-red-300 transition-all shadow-sm flex items-center justify-center gap-2">
+                    <i class="fas fa-undo"></i> Kembalikan
+                </button>
+                <button id="btnDetailSetujui" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2">
+                    <i class="fas fa-check"></i> Setujui Surat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Konfirmasi Tolak / Revisi -->
+<div id="modalKonfirmasiRevisi" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+    
+    <!-- Content -->
+    <div class="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in duration-200">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 text-2xl border-4 border-white shadow-sm">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Kembalikan untuk Revisi?</h2>
+        <p class="text-sm text-gray-500 mb-6 px-2">Draf surat ini akan dikembalikan kepada Staff pembuat untuk diperbaiki.</p>
+        
+        <form id="formRevisiSurat">
+            <div class="text-left mb-6">
+                <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1 mb-2">Catatan Revisi <span class="text-red-500">*</span></label>
+                <textarea id="catatan_revisi" name="catatan_revisi" rows="4" required
+                    placeholder="Tuliskan poin-poin yang perlu disesuaikan dengan jelas dan santun agar mudah dipahami oleh staf..."
+                    class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-semibold text-gray-800 focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:border-red-500 transition-all resize-none"></textarea>
+            </div>
+            
+            <div class="flex gap-3 mt-8">
+                <button type="button" id="btnBatalRevisi" class="flex-1 py-3 rounded-2xl border border-gray-100 text-gray-400 font-bold hover:bg-gray-50 transition-all">Batal</button>
+                <button type="submit" id="btnKonfirmasiRevisi" class="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-100 transition-all flex justify-center items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Kirim Revisi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Preview Foto Profil -->
+<div id="modalPreviewFoto" class="fixed inset-0 z-[120] hidden flex flex-col items-center justify-center p-4">
+    <!-- Backdrop -->
+    <div class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm cursor-pointer" onclick="closePhotoPreview()"></div>
+    
+    <!-- Content -->
+    <div class="relative w-full max-w-sm rounded-3xl animate-in zoom-in duration-200 flex flex-col items-center">
+        <!-- Close Button -->
+        <button onclick="closePhotoPreview()" class="absolute -top-12 right-0 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-all">
+            <i class="fas fa-times"></i>
+        </button>
+        
+        <!-- Image Container -->
+        <div class="w-48 h-48 sm:w-64 sm:h-64 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-white flex items-center justify-center">
+            <img id="previewFotoImg" src="" class="w-full h-full object-cover object-top" alt="Preview Foto">
+        </div>
+    </div>
+</div>

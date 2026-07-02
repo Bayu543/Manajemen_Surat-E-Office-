@@ -1,0 +1,639 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - E-Office</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#3B82F6',
+                        'navy-dark': '#2C3E50',
+                        'soft-blue': '#EFF6FF',
+                        'soft-purple': '#F5F3FF',
+                        'soft-pink': '#FDF2F8',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}?v=67">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        /* Protection for Legacy Sidebar & Header from Tailwind Reset */
+        .sidebar, .top-header, .sidebar *, .top-header * {
+            box-sizing: border-box;
+        }
+        .sidebar-nav a { text-decoration: none !important; }
+        .sidebar h3, .sidebar p, .top-header h1 { margin: 0; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #F9FAFB; /* Gray-50 as requested */
+            margin: 0;
+            padding: 0;
+        }
+        
+        @media (min-width: 1025px) {
+            body {
+                /* Faux column trick to ensure sidebar background stretches in full page screenshots */
+                background: linear-gradient(to right, #2C3E50 260px, #F9FAFB 260px);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .mobile-menu-btn { display: block !important; }
+            #mainSidebar { position: fixed !important; left: -260px !important; transform: none !important; z-index: 1000 !important; transition: left 0.3s ease !important; display: flex !important; }
+            #mainSidebar.show-mobile { left: 0 !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 1rem !important; }
+            .user-profile-info { display: none !important; }
+            .chart-card-header {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 1rem !important;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="dashboard-body">
+    <!-- Mobile Sidebar Backdrop -->
+    <div id="mobileDrawerBackdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[990] hidden transition-opacity duration-300" onclick="toggleMobileDrawer()"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="mainSidebar">
+        <!-- Sidebar Header -->
+        <div class="px-6 py-6 mb-2">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 shrink-0 flex items-center justify-center">
+                    <img src="{% static 'accounts/images/logo.png' %}" alt="Logo E-Office" class="w-full h-full object-contain">
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white leading-tight">E-office</h1>
+                    <p class="text-[10px] text-blue-300/80 font-medium uppercase tracking-wider">Sistem Manajemen Surat</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            {% with url_name=request.resolver_match.url_name %}
+            
+            {% if user.is_superuser %}
+            <div style="padding: 1.5rem 1.5rem 0.5rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); font-weight: 700;">
+                Administrasi
+            </div>
+            {% endif %}
+
+            <a href="{% url 'dashboard' %}" class="nav-item {% if url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <a href="{% url 'surat_masuk' %}" class="nav-item {% if url_name == 'surat_masuk' %}active{% endif %}">
+                <i class="fas fa-inbox"></i>
+                <span>{% if user.is_superuser %}Surat Masuk{% else %}Tugas Saya{% endif %}</span>
+            </a>
+            
+            <a href="{% url 'surat_keluar' %}" class="nav-item {% if url_name == 'surat_keluar' %}active{% endif %}">
+                <i class="fas fa-paper-plane"></i>
+                <span>Surat Keluar</span>
+            </a>
+            
+            <a href="{% url 'disposisi' %}" class="nav-item {% if url_name == 'disposisi' %}active{% endif %}">
+                <i class="fas fa-share-nodes"></i>
+                <span>Disposisi</span>
+            </a>
+            
+            <a href="{% url 'arsip' %}" class="nav-item {% if url_name == 'arsip' %}active{% endif %}">
+                <i class="fas fa-archive"></i>
+                <span>Arsip Surat</span>
+            </a>
+            
+            {% if user.is_superuser %}
+            <a href="{% url 'manajemen_user' %}" class="nav-item {% if url_name == 'manajemen_user' %}active{% endif %}">
+                <i class="fas fa-users-cog"></i>
+                <span>Manajemen User</span>
+            </a>
+            {% endif %}
+
+            
+            {% endwith %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <form method="POST" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Keluar Sistem</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        
+        <!-- Top Header -->
+        <header class="top-header bg-white/75 backdrop-blur-lg sticky top-0 z-[50] border-b border-slate-100/80 px-4 sm:px-8 py-3.5 sm:py-4 mb-0 flex items-center justify-between transition-all duration-300">
+            <div class="header-left flex flex-col justify-center flex-1 min-w-0 mr-2 sm:mr-4">
+                <div class="flex items-center gap-3">
+                    <button id="mobileMenuBtn" type="button" onclick="window.toggleMobileDrawer();" class="mobile-menu-btn lg:hidden shrink-0 bg-slate-50 border border-slate-100 p-2 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-800 active:scale-95 transition-all">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-tight m-0 truncate">{% block page_title %}{% endblock %}</h1>
+                </div>
+                <p id="realtimeDate" class="date text-[10px] sm:text-xs font-bold text-slate-400 mt-1 select-none truncate">{{ current_date|default:"Jum'at, 04-11-2025" }}</p>
+            </div>
+
+            {% if request.resolver_match.url_name != 'arsip' %}
+            <div class="search-box relative group hidden md:block mx-4 flex-1 max-w-[280px] lg:max-w-[380px] xl:max-w-[450px] transition-all duration-300">
+                <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 group-hover:text-slate-500 transition-colors"></i>
+                <input type="text" id="globalSearch" placeholder="{% block search_placeholder %}Cari surat, nomor, pengirim{% endblock %}" 
+                    class="pl-12 pr-6 py-2.5 bg-slate-50/60 hover:bg-slate-50/90 border border-slate-150 hover:border-slate-300/60 rounded-full text-sm w-full focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white transition-all font-semibold placeholder:text-slate-450 text-slate-700 shadow-inner">
+            </div>
+            {% endif %}
+
+            <div class="header-right flex items-center gap-3 sm:gap-6 shrink-0">
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <div class="relative" id="notificationContainer">
+                        <button id="bellNotificationBtn" class="notification-btn w-10 sm:w-11 h-10 sm:h-11 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50/30 hover:border-blue-100 transition-all duration-300 relative cursor-pointer active:scale-95" onclick="toggleNotificationDropdown(event)">
+                            <i id="bellIconAnim" class="fas fa-bell text-base sm:text-lg transition-transform duration-300"></i>
+                            <div id="bellNotificationBadgeContainer" class="absolute -top-1 -right-1">
+                                {% if unread_notifications_count > 0 %}
+                                <span class="notification-badge min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 px-1 bg-gradient-to-r from-rose-500 to-red-600 border-2 border-white rounded-full flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-white shadow-sm shadow-red-200">{{ unread_notifications_count }}</span>
+                                {% endif %}
+                            </div>
+                        </button>
+                        
+                        <!-- Dropdown Menu Notifikasi -->
+                        <div id="notificationDropdown" class="fixed left-4 right-4 top-[72px] sm:absolute sm:top-auto sm:left-auto sm:right-0 sm:mt-2 sm:w-80 bg-white rounded-2xl shadow-2xl shadow-gray-900/20 sm:shadow-xl sm:shadow-gray-500/10 border border-gray-100 opacity-0 invisible transition-all z-[100] transform origin-top sm:origin-top-right scale-95 duration-200">
+                            <div class="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50 rounded-t-2xl">
+                                <h3 class="text-sm font-black text-gray-800 tracking-tight">Notifikasi</h3>
+                                <div id="dropdownHeaderBadgeContainer">
+                                    {% if unread_notifications_count > 0 %}
+                                    <span class="bg-blue-100 text-blue-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full">{{ unread_notifications_count }} Baru</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div id="notificationDropdownList" class="max-h-80 overflow-y-auto">
+                                {% if recent_notifications %}
+                                    {% for notif in recent_notifications %}
+                                    <a href="{{ notif.url }}" data-notif-type="{{ notif.type }}" class="block p-4 border-b border-slate-100 hover:bg-blue-50/50 transition-colors">
+                                        <div class="flex gap-3">
+                                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                                                <i class="fas {% if notif.type == 'surat_keluar' %}fa-paper-plane{% else %}fa-inbox{% endif %} text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-800 mb-1 leading-tight flex items-center gap-1.5 flex-wrap">
+                                                    <span class="inline-block px-1.5 py-0.5 {% if notif.type == 'surat_keluar' %}bg-amber-50 text-amber-700 border-amber-200/60{% else %}bg-blue-50 text-blue-700 border-blue-200/60{% endif %} border rounded text-[9px] font-black uppercase tracking-wider">{{ notif.label }}</span>
+                                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">{{ notif.sub_label }}</span>
+                                                </p>
+                                                <p class="text-[10px] text-gray-600 line-clamp-2 leading-relaxed font-medium">{{ notif.title }}</p>
+                                                <span class="text-[9px] font-bold text-blue-500 mt-1.5 block">{{ notif.time_ago|timesince }} yang lalu</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="p-8 text-center flex flex-col items-center justify-center">
+                                        <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-300">
+                                            <i class="fas fa-bell-slash text-lg"></i>
+                                        </div>
+                                        <p class="text-xs font-bold text-gray-400">Tidak ada notifikasi baru</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="p-3 border-t border-slate-100 text-center bg-gray-50/50 rounded-b-2xl">
+                                <a href="{% if user.is_superuser %}{% url 'surat_keluar' %}{% else %}{% url 'surat_masuk' %}{% endif %}" class="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest transition-colors">Lihat Semua Tugas</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="user-profile flex items-center gap-2 sm:gap-3 pl-3 sm:pl-5 border-l border-slate-100 cursor-pointer group" id="userProfileBtn" onclick="window.location.href='{% url 'profil' %}'">
+                        {% if user.profile.foto_profil %}
+                        <img src="{{ user.profile.foto_profil.url }}" class="rounded-full bg-white object-cover p-0.5 border-2 border-white shadow-[0_2px_8px_-1px_rgba(0,0,0,0.08)] group-hover:border-blue-500 group-hover:shadow-[0_0_12px_rgba(59,130,246,0.25)] transition-all duration-300 shrink-0" alt="User" style="width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; max-width: 44px !important; max-height: 44px !important; object-fit: cover !important; object-position: top center !important; border-radius: 50% !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                        {% else %}
+                        <div class="bg-gradient-to-br {% if user.is_superuser %}from-blue-500 to-indigo-600 shadow-blue-100{% else %}from-purple-500 to-pink-600 shadow-purple-100{% endif %} border-2 border-white shadow-[0_2px_8px_-1px_rgba(0,0,0,0.08)] group-hover:border-blue-500 group-hover:shadow-[0_0_12px_rgba(59,130,246,0.25)] transition-all duration-300 shrink-0 flex items-center justify-center text-white font-bold text-xs sm:text-sm" style="width: 44px !important; height: 44px !important; min-width: 44px !important; min-height: 44px !important; max-width: 44px !important; max-height: 44px !important; border-radius: 50% !important; aspect-ratio: 1/1 !important; flex-shrink: 0 !important;">
+                            {{ user.username|slice:":2"|upper }}
+                        </div>
+                        {% endif %}
+                        <div class="hidden lg:flex flex-col items-start gap-0.5">
+                            <span class="user-profile-name text-sm font-extrabold text-slate-800 leading-none mb-1 group-hover:text-blue-600 transition-colors duration-300">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="user-profile-role text-[9px] font-bold text-slate-455 group-hover:text-blue-500/80 uppercase tracking-widest leading-none whitespace-nowrap transition-colors duration-300">{% if user.is_superuser %}Admin Utama{% else %}Staff{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Block -->
+        <div class="content-body">
+            {% if messages %}
+                <div class="px-6 pt-6 pb-0">
+                    {% for message in messages %}
+                        {% if message.tags == 'success' %}
+                            <div class="bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 p-4 mb-4 rounded-r-xl shadow-sm flex items-center justify-between" role="alert">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-check-circle text-lg"></i>
+                                    <p class="font-bold text-sm m-0">{{ message }}</p>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="text-emerald-500 hover:text-emerald-700 transition-colors cursor-pointer"><i class="fas fa-times"></i></button>
+                            </div>
+                        {% elif message.tags == 'error' %}
+                            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded-r-xl shadow-sm flex items-center justify-between" role="alert">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-exclamation-circle text-lg"></i>
+                                    <p class="font-bold text-sm m-0">{{ message }}</p>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="text-red-500 hover:text-red-700 transition-colors cursor-pointer"><i class="fas fa-times"></i></button>
+                            </div>
+                        {% elif message.tags == 'warning' %}
+                            <div class="bg-amber-50 border-l-4 border-amber-500 text-amber-700 p-4 mb-4 rounded-r-xl shadow-sm flex items-center justify-between" role="alert">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-exclamation-triangle text-lg"></i>
+                                    <p class="font-bold text-sm m-0">{{ message }}</p>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="text-amber-500 hover:text-amber-700 transition-colors cursor-pointer"><i class="fas fa-times"></i></button>
+                            </div>
+                        {% else %}
+                            <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded-r-xl shadow-sm flex items-center justify-between" role="alert">
+                                <div class="flex items-center gap-3">
+                                    <i class="fas fa-info-circle text-lg"></i>
+                                    <p class="font-bold text-sm m-0">{{ message }}</p>
+                                </div>
+                                <button onclick="this.parentElement.style.display='none'" class="text-blue-500 hover:text-blue-700 transition-colors cursor-pointer"><i class="fas fa-times"></i></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script>
+        // Real-time Date Update
+        function updateRealtimeDate() {
+            const dateElement = document.getElementById('realtimeDate');
+            if (dateElement) {
+                const now = new Date();
+                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                
+                const dayName = days[now.getDay()];
+                const day = String(now.getDate()).padStart(2, '0');
+                const monthName = months[now.getMonth()];
+                const year = now.getFullYear();
+                
+                dateElement.textContent = `${dayName}, ${day} ${monthName} ${year}`;
+            }
+        }
+        updateRealtimeDate();
+        setInterval(updateRealtimeDate, 60000); // Update setiap 1 menit
+
+        // Notification Dropdown Toggle Logic
+        window.toggleNotificationDropdown = function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('notificationDropdown');
+            const bellAnim = document.getElementById('bellIconAnim');
+            const isOpen = !dropdown.classList.contains('invisible');
+            
+            if (isOpen) {
+                dropdown.classList.add('opacity-0', 'invisible', 'scale-95');
+                dropdown.classList.remove('opacity-100', 'visible', 'scale-100');
+                bellAnim?.classList.remove('rotate-12');
+            } else {
+                dropdown.classList.remove('opacity-0', 'invisible', 'scale-95');
+                dropdown.classList.add('opacity-100', 'visible', 'scale-100');
+                bellAnim?.classList.add('rotate-12');
+            }
+        };
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            const notifDropdown = document.getElementById('notificationDropdown');
+            const notifContainer = document.getElementById('notificationContainer');
+            
+            if (notifDropdown && !notifDropdown.classList.contains('invisible')) {
+                if (notifContainer && !notifContainer.contains(e.target)) {
+                    notifDropdown.classList.add('opacity-0', 'invisible', 'scale-95');
+                    notifDropdown.classList.remove('opacity-100', 'visible', 'scale-100');
+                    document.getElementById('bellIconAnim')?.classList.remove('rotate-12');
+                }
+            }
+        });
+
+        // Profile Dropdown Toggle Logic (if needed)
+        // Mobile Sidebar Toggle & Offcanvas Drawer
+        window.toggleMobileDrawer = function() {
+            const sidebar = document.getElementById('mainSidebar');
+            const backdrop = document.getElementById('mobileDrawerBackdrop');
+            if (sidebar && backdrop) {
+                const isOpen = sidebar.classList.contains('show-mobile');
+                if (isOpen) {
+                    sidebar.classList.remove('show-mobile');
+                    backdrop.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                } else {
+                    sidebar.classList.add('show-mobile');
+                    backdrop.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+        };
+
+        // Mobile menu button now uses inline onclick handler
+
+        // Global Search Function across all pages (Admin & Staff)
+        const globalSearchInput = document.getElementById('globalSearch');
+        if (globalSearchInput) {
+            globalSearchInput.addEventListener('input', function(e) {
+                const query = e.target.value.toLowerCase().trim();
+                const tableRows = document.querySelectorAll('main.main-content table tbody tr');
+                
+                tableRows.forEach(row => {
+                    // Jangan filter baris kosong placeholder atau baris total
+                    if (row.classList.contains('empty-row') || row.querySelector('td[colspan]')) {
+                        return;
+                    }
+                    const rowText = row.textContent.toLowerCase();
+                    if (query === '' || rowText.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // --- Premium Real-Time Notification & Web Audio Engine ---
+        let audioCtx = null;
+        let shouldPlaySoundOnFirstInteraction = false;
+        let pendingSoundType = null;
+
+        const isSuperuser = {% if user.is_superuser %}true{% else %}false{% endif %};
+        const userMailUrl = isSuperuser ? "{% url 'surat_keluar' %}" : "{% url 'surat_masuk' %}";
+        const storageKey = isSuperuser ? 'admin_unread_count' : 'staff_unread_count';
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                console.log("AudioContext initialized!");
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    console.log("AudioContext resumed!");
+                    if (shouldPlaySoundOnFirstInteraction && pendingSoundType) {
+                        playNotificationSound(pendingSoundType);
+                        shouldPlaySoundOnFirstInteraction = false;
+                        pendingSoundType = null;
+                    }
+                });
+            } else {
+                if (shouldPlaySoundOnFirstInteraction && pendingSoundType) {
+                    playNotificationSound(pendingSoundType);
+                    shouldPlaySoundOnFirstInteraction = false;
+                    pendingSoundType = null;
+                }
+            }
+        }
+
+        // Global user gesture unlocker to bypass autoplay policy
+        function unlockAudio() {
+            try {
+                initAudioContext();
+                if (audioCtx) {
+                    const buffer = audioCtx.createBuffer(1, 1, 22050);
+                    const source = audioCtx.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(audioCtx.destination);
+                    source.start(0);
+                }
+                document.removeEventListener('click', unlockAudio);
+                document.removeEventListener('keydown', unlockAudio);
+                document.removeEventListener('touchstart', unlockAudio);
+            } catch (e) {
+                console.warn("Failed to unlock audio context:", e);
+            }
+        }
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('keydown', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+
+        function playNotificationSound(type) {
+            try {
+                if (!audioCtx || audioCtx.state === 'suspended') {
+                    shouldPlaySoundOnFirstInteraction = true;
+                    pendingSoundType = type;
+                    console.log(`Notification sound queued: ${type}`);
+                    return;
+                }
+                
+                const now = audioCtx.currentTime;
+                
+                if (type === 'incoming') {
+                    // C5 (523.25 Hz)
+                    const osc1 = audioCtx.createOscillator();
+                    const gain1 = audioCtx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(523.25, now);
+                    
+                    gain1.gain.setValueAtTime(0, now);
+                    gain1.gain.linearRampToValueAtTime(0.35, now + 0.05);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    
+                    osc1.connect(gain1);
+                    gain1.connect(audioCtx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.4);
+                    
+                    // E5 (659.25 Hz)
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(659.25, now + 0.12);
+                    
+                    gain2.gain.setValueAtTime(0, now + 0.12);
+                    gain2.gain.linearRampToValueAtTime(0.35, now + 0.17);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                    
+                    osc2.connect(gain2);
+                    gain2.connect(audioCtx.destination);
+                    osc2.start(now + 0.12);
+                    osc2.stop(now + 0.55);
+                    console.log("Incoming sound chime played.");
+                    
+                } else if (type === 'outgoing') {
+                    // Upward Sweep from F4 (349.23 Hz) to A5 (880.00 Hz)
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(349.23, now);
+                    osc.frequency.exponentialRampToValueAtTime(880.00, now + 0.25);
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                    
+                    // C6 high chime (1046.50 Hz)
+                    const oscChime = audioCtx.createOscillator();
+                    const gainChime = audioCtx.createGain();
+                    oscChime.type = 'sine';
+                    oscChime.frequency.setValueAtTime(1046.50, now + 0.22);
+                    
+                    gainChime.gain.setValueAtTime(0, now + 0.22);
+                    gainChime.gain.linearRampToValueAtTime(0.2, now + 0.25);
+                    gainChime.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    
+                    oscChime.connect(gainChime);
+                    gainChime.connect(audioCtx.destination);
+                    oscChime.start(now + 0.22);
+                    oscChime.stop(now + 0.5);
+                    console.log("Outgoing sound chime played.");
+                }
+            } catch (e) {
+                console.warn("Web Audio playback failed:", e);
+            }
+        }
+
+        // Initialize last unread count from localStorage or server fallback
+        let lastUnreadCount = parseInt(localStorage.getItem(storageKey), 10);
+        const currentServerCount = parseInt("{{ unread_notifications_count|default:0 }}", 10);
+
+        if (isNaN(lastUnreadCount)) {
+            lastUnreadCount = currentServerCount;
+            localStorage.setItem(storageKey, currentServerCount);
+        } else if (currentServerCount > lastUnreadCount) {
+            // Count increased upon page load (e.g. after action reload)
+            let soundType = 'incoming';
+            const firstNotifEl = document.querySelector('#notificationDropdownList [data-notif-type]');
+            if (firstNotifEl) {
+                const notifType = firstNotifEl.getAttribute('data-notif-type');
+                if (notifType === 'surat_keluar') {
+                    soundType = 'outgoing';
+                }
+            } else {
+                soundType = isSuperuser ? 'outgoing' : 'incoming';
+            }
+            playNotificationSound(soundType);
+            lastUnreadCount = currentServerCount;
+            localStorage.setItem(storageKey, currentServerCount);
+        } else {
+            localStorage.setItem(storageKey, currentServerCount);
+            lastUnreadCount = currentServerCount;
+        }
+
+        function checkNotifications() {
+            fetch('{% url "notifications_api" %}')
+                .then(response => {
+                    if (!response.ok) throw new Error("HTTP error " + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    const count = data.unread_count;
+                    const recent = data.recent_notifications;
+                    
+                    if (count > lastUnreadCount) {
+                        let soundType = 'incoming';
+                        if (recent && recent.length > 0) {
+                            if (recent[0].type === 'surat_keluar') {
+                                soundType = 'outgoing';
+                            }
+                        } else {
+                            soundType = isSuperuser ? 'outgoing' : 'incoming';
+                        }
+                        playNotificationSound(soundType);
+                    }
+                    
+                    lastUnreadCount = count;
+                    localStorage.setItem(storageKey, count);
+                    
+                    // 1. Update Badge on Bell icon
+                    const badgeContainer = document.getElementById('bellNotificationBadgeContainer');
+                    if (badgeContainer) {
+                        if (count > 0) {
+                            badgeContainer.innerHTML = `<span class="notification-badge min-w-[18px] sm:min-w-[20px] h-4 sm:h-5 px-1 bg-gradient-to-r from-rose-500 to-red-600 border-2 border-white rounded-full flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-white shadow-sm shadow-red-200">${count}</span>`;
+                        } else {
+                            badgeContainer.innerHTML = '';
+                        }
+                    }
+                    
+                    // 2. Update Badge in Dropdown Header
+                    const dropdownHeaderBadgeContainer = document.getElementById('dropdownHeaderBadgeContainer');
+                    if (dropdownHeaderBadgeContainer) {
+                        if (count > 0) {
+                            dropdownHeaderBadgeContainer.innerHTML = `<span class="bg-blue-100 text-blue-600 text-[10px] font-bold px-2.5 py-0.5 rounded-full">${count} Baru</span>`;
+                        } else {
+                            dropdownHeaderBadgeContainer.innerHTML = '';
+                        }
+                    }
+                    
+                    // 3. Update Dropdown Content
+                    const dropdownList = document.getElementById('notificationDropdownList');
+                    if (dropdownList) {
+                        if (recent && recent.length > 0) {
+                            let listHtml = '';
+                            recent.forEach(notif => {
+                                const iconClass = notif.type === 'surat_keluar' ? 'fa-paper-plane' : 'fa-inbox';
+                                const badgeClass = notif.type === 'surat_keluar' ? 'bg-amber-50 text-amber-700 border-amber-200/60' : 'bg-blue-50 text-blue-700 border-blue-200/60';
+                                const badgeText = notif.label;
+                                const actionText = notif.sub_label;
+                                const detailText = notif.title;
+                                const timeText = notif.time_ago;
+                                const targetUrl = notif.url;
+                                
+                                listHtml += `
+                                    <a href="${targetUrl}" data-notif-type="${notif.type}" class="block p-4 border-b border-slate-100 hover:bg-blue-50/50 transition-colors">
+                                        <div class="flex gap-3">
+                                            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
+                                                <i class="fas ${iconClass} text-xs"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-xs font-bold text-gray-800 mb-1 leading-tight flex items-center gap-1.5 flex-wrap">
+                                                    <span class="inline-block px-1.5 py-0.5 ${badgeClass} border rounded text-[9px] font-black uppercase tracking-wider">${badgeText}</span>
+                                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">${actionText}</span>
+                                                </p>
+                                                <p class="text-[10px] text-gray-600 line-clamp-2 leading-relaxed font-medium">${detailText}</p>
+                                                <span class="text-[9px] font-bold text-blue-500 mt-1.5 block">${timeText}</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                            dropdownList.innerHTML = listHtml;
+                        } else {
+                            dropdownList.innerHTML = `
+                                <div class="p-8 text-center flex flex-col items-center justify-center">
+                                    <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-300">
+                                        <i class="fas fa-bell-slash text-lg"></i>
+                                    </div>
+                                    <p class="text-xs font-bold text-gray-400">Tidak ada notifikasi baru</p>
+                                </div>
+                            `;
+                        }
+                    }
+                })
+                .catch(err => console.error("Error fetching notifications:", err));
+        }
+
+        // Run check every 8 seconds
+        setInterval(checkNotifications, 8000);
+    </script>
+    <!-- Bottom Navigation Bar for Mobile removed as per request -->
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

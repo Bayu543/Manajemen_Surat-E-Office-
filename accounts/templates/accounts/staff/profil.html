@@ -1,0 +1,184 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Profil Staff{% endblock %}
+{% block page_title %}Profil Saya{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/dashboard.css' %}">
+    <style>
+        .profile-container { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 1024px) {
+            .profile-container { grid-template-columns: 300px 1fr; gap: 2rem; }
+        }
+        .profile-card-left { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .profile-card-right { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .profile-img-large { width: 150px; height: 150px; border-radius: 50% !important; object-fit: cover !important; border: 5px solid #F3F4F6; margin-bottom: 1rem; }
+        .profile-name { font-size: 1.5rem; font-weight: 700; color: #1F2937; margin-bottom: 0.25rem; }
+        .profile-role { color: #6B7280; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .profile-info-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+        @media (min-width: 768px) {
+            .profile-info-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .info-group.full-width { grid-column: span 1; }
+        @media (min-width: 768px) {
+            .info-group.full-width { grid-column: span 2; }
+        }
+        .info-label { display: block; font-size: 0.75rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .info-value { font-weight: 600; color: #374151; font-size: 1rem; word-break: break-word; }
+        .profile-actions { margin-top: 2rem; display: flex; gap: 1rem; flex-direction: column; }
+        #modalEditProfil, #modalGantiPassword { display: none; }
+        #modalEditProfil.show, #modalGantiPassword.show { display: flex !important; }
+        
+        /* Force perfect circle for profile images and containers */
+        #profilePreview, 
+        .profile-img-large, 
+        .profile-image-wrapper,
+        .profile-image-container img {
+            border-radius: 50% !important;
+            aspect-ratio: 1 / 1 !important;
+            object-fit: cover !important;
+        }
+        
+        /* Force perfect circle for the camera upload button */
+        .profile-image-container button,
+        button.btn-icon[onclick*="id_foto_profil"] {
+            border-radius: 50% !important;
+            aspect-ratio: 1 / 1 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="profile-container">
+        <div class="profile-card-left" style="position: relative; overflow: hidden;">
+            <!-- Background Decorative Banner -->
+            {% if user.profile.foto_profil %}
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 180px; overflow: hidden; z-index: 0;">
+                <div style="position: absolute; top: -40px; left: -40px; right: -40px; bottom: -40px; background-image: url('{{ user.profile.foto_profil.url }}'); background-size: cover; background-position: center; filter: blur(20px); opacity: 0.4;"></div>
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,1) 100%);"></div>
+            </div>
+            {% else %}
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 140px; background: linear-gradient(to right, #3B82F6, #8B5CF6); opacity: 0.1; z-index: 0;"></div>
+            {% endif %}
+            
+        <div class="profile-image-container" style="position: relative; display: inline-block; z-index: 10; padding-top: 1rem;">
+            <div class="profile-image-wrapper" style="width: 150px !important; height: 150px !important; border-radius: 50% !important; overflow: hidden !important; border: 5px solid #F3F4F6 !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; background: white !important; display: flex !important; align-items: center !important; justify-content: center !important; margin: 0 auto !important;">
+                {% if user.profile.foto_profil %}
+                    <img src="{{ user.profile.foto_profil.url }}" id="profilePreview" class="cursor-pointer hover:opacity-90 transition-opacity" style="width: 100% !important; height: 100% !important; object-fit: cover !important; object-position: top center !important; border-radius: 50% !important;" onclick="openPhotoModal('{{ user.profile.foto_profil.url }}')">
+                {% else %}
+                    <div class="profile-img-large bg-gradient-to-br {% if user.is_superuser %}from-blue-500 to-indigo-600{% else %}from-purple-500 to-pink-600{% endif %} flex items-center justify-center text-white text-5xl font-black shadow-lg" id="profilePreview" style="width: 100% !important; height: 100% !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; margin: 0 !important; border: none !important;">
+                        {{ user.username|slice:":2"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <button class="btn-icon" style="position: absolute !important; bottom: 0 !important; right: 0 !important; background: #2563EB !important; color: white !important; border-radius: 50% !important; width: 40px !important; height: 40px !important; display: flex !important; align-items: center !important; justify-content: center !important; border: 3px solid white !important; z-index: 20 !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;" onclick="document.getElementById('id_foto_profil').click()">
+                <i class="fas fa-camera"></i>
+            </button>
+        </div>
+        <h2 id="profileCardNama" class="profile-name capitalize">{{ user.get_full_name|default:user.username }}</h2>
+        <span class="profile-role">Staff Operasional</span>
+        
+        <div class="profile-actions">
+            <button class="btn-action btn-primary" style="background: #2563EB; color: white; justify-content: center;" onclick="document.getElementById('modalEditProfil').classList.add('show'); document.body.style.overflow = 'hidden';">
+                <i class="fas fa-user-edit"></i> Edit Profil
+            </button>
+            <button class="btn-action btn-secondary" style="border-color: #E5E7EB; color: #374151; justify-content: center;" onclick="document.getElementById('modalGantiPassword').classList.add('show'); document.body.style.overflow = 'hidden';">
+                <i class="fas fa-key"></i> Ganti Password
+            </button>
+        </div>
+    </div>
+
+    <div class="profile-card-right">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #1F2937; margin-bottom: 1.5rem; border-bottom: 2px solid #F3F4F6; padding-bottom: 0.75rem;">Informasi Akun</h3>
+        <div class="profile-info-grid">
+            <div class="info-group">
+                <span class="info-label">Nama Lengkap</span>
+                <span id="profileDisplayNama" class="info-value capitalize">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <div class="info-group">
+                <span class="info-label">Username</span>
+                <span class="info-value">{{ user.username }}</span>
+            </div>
+            <div class="info-group">
+                <span class="info-label">Email Address</span>
+                <span id="profileDisplayEmail" class="info-value">{{ user.email|default:"-" }}</span>
+            </div>
+            <div class="info-group">
+                <span class="info-label">Nomor Telepon</span>
+                <span id="profileDisplayTelepon" class="info-value">{{ user.profile.phone|default:"-" }}</span>
+            </div>
+            <div class="info-group full-width">
+                <span class="info-label">Alamat</span>
+                <span id="profileDisplayAlamat" class="info-value">{{ user.profile.alamat|default:"-" }}</span>
+            </div>
+            <div class="info-group">
+                <span class="info-label">Tanggal Bergabung</span>
+                <span class="info-value">{{ user.date_joined|date:"d F Y" }}</span>
+            </div>
+        </div>
+
+        <form id="formUploadFoto" method="POST" enctype="multipart/form-data" action="{% url 'upload_foto_profil' %}" style="display: none;">
+            {% csrf_token %}
+            <input type="file" name="foto_profil" id="id_foto_profil" accept=".jpg,.jpeg,.png" onchange="this.form.submit()">
+        </form>
+    </div>
+</div>
+</div>
+
+{% include "accounts/staff/modals_profil.html" %}
+
+<!-- Photo View Modal -->
+<div id="modalLihatFoto" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/90 backdrop-blur-sm transition-opacity duration-300 opacity-0" onclick="closePhotoModal(event)">
+    <div class="relative max-w-4xl max-h-[90vh] w-full mx-4 flex items-center justify-center scale-95 transition-transform duration-300" id="modalLihatFotoContent">
+        <button class="absolute -top-12 right-0 text-white hover:text-gray-300 text-4xl font-bold p-2 z-50 transition-colors" onclick="closePhotoModal(event, true)">&times;</button>
+        <img src="" class="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl border-4 border-white/10" id="fullPhotoPreview">
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'accounts/js/profil.js' %}?v=1"></script>
+    <script>
+        function openPhotoModal(url) {
+            const modal = document.getElementById('modalLihatFoto');
+            const img = document.getElementById('fullPhotoPreview');
+            const content = document.getElementById('modalLihatFotoContent');
+            
+            img.src = url;
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            
+            // Trigger animation
+            setTimeout(() => {
+                modal.classList.add('opacity-100');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+            
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closePhotoModal(event, force = false) {
+            const modal = document.getElementById('modalLihatFoto');
+            const content = document.getElementById('modalLihatFotoContent');
+            
+            // Only close if clicking the background or the close button
+            if (force || event.target === modal) {
+                modal.classList.remove('opacity-100');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+                
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        }
+    </script>
+{% endblock %}

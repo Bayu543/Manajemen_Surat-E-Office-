@@ -1,0 +1,613 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Arsip Surat{% endblock %}
+{% block page_title %}Arsip Digital{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/surat.css' %}?v=60">
+    <style>
+        .filter-section { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 2rem; display: flex; gap: 1.5rem; align-items: flex-end; }
+        .filter-group { flex: 1; }
+        .filter-group label { display: block; font-size: 0.75rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; margin-bottom: 0.5rem; }
+        .filter-group select, .filter-group input { width: 100%; padding: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.9rem; }
+        
+        /* Custom Modal Style matching the system modern theme */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1050;
+            background-color: rgba(3, 7, 18, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-container {
+            background-color: white;
+            width: 100%;
+            max-width: 32rem;
+            border-radius: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+            transform: scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
+        }
+        .modal-overlay.show .modal-container {
+            transform: scale(1);
+        }
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #1e293b;
+            letter-spacing: -0.025em;
+        }
+        .modal-close {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.75rem;
+            background-color: #f8fafc;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .modal-close:hover {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+        .modal-body-detail {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .modal-body-detail::-webkit-scrollbar {
+            width: 6px;
+        }
+        .modal-body-detail::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .modal-body-detail::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .modal-body-detail::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .detail-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .detail-section.highlight {
+            background-color: #eff6ff;
+            border: 1px solid #dbeafe;
+            padding: 1rem 1.25rem;
+            border-radius: 1.25rem;
+        }
+        .detail-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+        }
+        .detail-value {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #334155;
+        }
+        .detail-section.highlight .detail-value {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #2563eb;
+        }
+        .detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+        .badge-jenis {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-width: 1px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .badge-jenis.masuk {
+            color: #4f46e5;
+            background-color: #eef2ff;
+            border-color: #e0e7ff;
+        }
+        .badge-jenis.keluar {
+            color: #2563eb;
+            background-color: #eff6ff;
+            border-color: #dbeafe;
+        }
+        .badge-status-surat {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-width: 1px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+        .badge-status-surat.baru {
+            color: #2563eb;
+            background-color: #eff6ff;
+            border-color: #dbeafe;
+        }
+        .badge-status-surat.draft {
+            color: #4b5563;
+            background-color: #f3f4f6;
+            border-color: #e5e7eb;
+        }
+        .badge-status-surat.diproses, .badge-status-surat.diajukan {
+            color: #d97706;
+            background-color: #fffbeb;
+            border-color: #fef3c7;
+        }
+        .badge-status-surat.selesai, .badge-status-surat.disetujui {
+            color: #059669;
+            background-color: #ecfdf5;
+            border-color: #d1fae5;
+        }
+        .file-attachment {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .file-attachment:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .file-attachment i {
+            font-size: 1.25rem;
+            color: #ef4444;
+        }
+        .modal-footer {
+            padding: 1.25rem 2rem;
+            background-color: #f8fafc;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-close-detail {
+            padding: 0.625rem 1.5rem;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-close-detail:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+        
+        /* Screen-only classes */
+        .print-show { display: none !important; }
+        
+        .print-header {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            z-index: -50;
+            top: 0;
+            left: 0;
+            width: 100%;
+        }
+        @media print {
+            @page {
+                margin: 0; /* Menghilangkan header/footer default browser */
+            }
+            body, html {
+                background: white !important;
+                color: black !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 1cm !important; /* Memberikan jarak agar konten tidak terpotong */
+                overflow: visible !important;
+            }
+            * {
+                box-sizing: border-box !important;
+            }
+            .sidebar, .top-header, .no-print, .bg-white.p-6.rounded-2xl, .fixed.bottom-0 {
+                display: none !important;
+            }
+            /* Override all padding/margins that cause right-side cutoffs */
+            .main-content, .p-6, .lg\:ml-64 {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                left: 0 !important;
+            }
+            
+            /* Handle visibility */
+            .print-show { display: inline-block !important; }
+            .print-hide { display: none !important; }
+            
+            /* Sembunyikan scrollbar di print */
+            .overflow-x-auto, .overflow-y-auto {
+                overflow: visible !important;
+                max-width: none !important;
+            }
+            
+            /* Show Print Header (Kop Surat) */
+            .print-header {
+                position: relative !important;
+                opacity: 1 !important;
+                z-index: 1 !important;
+                display: flex !important;
+                align-items: flex-start !important;
+                border-bottom: 3px solid black !important;
+                padding-bottom: 15px !important;
+                margin-bottom: 20px !important;
+            }
+            /* Sembunyikan Header Tabel bawaan */
+            .px-6.py-4.border-b.border-gray-50.flex.items-center.justify-between {
+                display: none !important;
+            }
+            
+            /* Make the table look incredibly professional for print */
+            .surat-table {
+                display: table !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: none !important;
+                border-collapse: collapse !important;
+                margin-top: 10px !important;
+                table-layout: auto !important;
+            }
+            
+            /* Reset tr and td to defeat ALL flexbox and absolute positioning from Tailwind */
+            .surat-table tr {
+                display: table-row !important;
+                position: static !important;
+                page-break-inside: avoid !important;
+            }
+            .surat-table th, .surat-table td {
+                display: table-cell !important;
+                position: static !important;
+                border: 1px solid black !important;
+                padding: 10px 12px !important;
+                text-align: left !important;
+                font-size: 11px !important;
+                color: black !important;
+                word-wrap: break-word !important;
+                white-space: normal !important;
+                vertical-align: top !important;
+            }
+            
+            /* Override truncate and any hidden texts */
+            .truncate {
+                white-space: normal !important;
+                overflow: visible !important;
+                text-overflow: clip !important;
+            }
+            
+            .print-nowrap {
+                white-space: nowrap !important;
+            }
+            
+            .surat-table th {
+                background-color: #f8fafc !important;
+                color: black !important;
+                font-weight: bold !important;
+                text-transform: uppercase !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .surat-table tbody tr {
+                page-break-inside: avoid !important;
+                display: table-row !important; /* Force override flex */
+            }
+            
+            /* Fix the layout for blocks so they appear as a proper table row in print */
+            .surat-table thead.hidden { display: table-header-group !important; }
+            .surat-table tbody.block { display: table-row-group !important; }
+            .surat-table td.block { display: table-cell !important; }
+            
+            /* Hide mobile labels inside td during print */
+            .surat-table td span.md\:hidden, .surat-table td span.lg\:hidden { display: none !important; }
+            
+            /* Sembunyikan kolom aksi saat dicetak */
+            .surat-table th:last-child, .surat-table td:last-child {
+                display: none !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Print Header (Kop Surat Khusus Cetak PDF) -->
+    <div class="print-header items-center justify-between mb-4 pb-4 border-b-[3px] border-black w-full">
+        <img src="{% static 'accounts/images/logo.png' %}" alt="Logo Kabupaten Bekasi" class="w-24 h-auto shrink-0" style="width: 85px;">
+        <div class="flex-1 text-center px-4">
+            <h1 class="text-2xl font-black text-black uppercase tracking-widest mb-1 leading-tight" style="font-family: 'Times New Roman', Times, serif;">Pemerintah Kabupaten Bekasi</h1>
+            <p class="text-xs text-black font-semibold tracking-wide" style="font-family: 'Times New Roman', Times, serif;">Jl. Wibawa Mukti, Sukamahi, Kec. Cikarang Pusat, Kabupaten Bekasi, Jawa Barat 17530</p>
+        </div>
+        <div style="width: 85px;" class="shrink-0"></div> <!-- Balancer to keep text exactly centered -->
+    </div>
+    
+    <div class="text-center mb-6 hidden print-show w-full">
+        <h2 class="text-sm font-bold text-black uppercase tracking-widest underline underline-offset-4">Laporan Rekapitulasi Arsip Digital</h2>
+    </div>
+
+    <!-- Export Section -->
+    <div class="flex items-center justify-end gap-2 mb-8 no-print">
+        <button onclick="exportToExcel()" class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl font-bold text-sm hover:bg-emerald-100 transition-all border border-emerald-100">
+            <i class="fas fa-file-excel"></i> Export Excel
+        </button>
+        <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-sm hover:bg-red-100 transition-all border border-red-100">
+            <i class="fas fa-file-pdf"></i> Cetak PDF
+        </button>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 no-print">
+        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-gray-50">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i class="fas fa-filter text-sm"></i>
+            </div>
+            <h3 class="font-bold text-gray-800 text-sm tracking-wide">Filter & Pencarian Dokumen</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Jenis Surat -->
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2 ml-1">Jenis Surat</label>
+                <div class="relative">
+                    <select id="filterJenis" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all appearance-none text-gray-600 font-medium cursor-pointer">
+                        <option value="all">Semua Jenis</option>
+                        <option value="masuk">Surat Masuk</option>
+                        <option value="keluar">Surat Keluar</option>
+                    </select>
+                    <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Status Surat -->
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2 ml-1">Status</label>
+                <div class="relative">
+                    <select id="filterStatus" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all appearance-none text-gray-600 font-medium cursor-pointer">
+                        <option value="all">Semua Status</option>
+                        <option value="Baru">Baru</option>
+                        <option value="Diproses">Diproses</option>
+                        <option value="Disetujui">Disetujui</option>
+                        <option value="Selesai">Selesai</option>
+                    </select>
+                    <i class="fas fa-info-circle absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Tahun Arsip -->
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2 ml-1">Tahun</label>
+                <div class="relative">
+                    <select id="filterTahun" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all appearance-none text-gray-600 font-medium cursor-pointer">
+                        <option value="all">Semua Tahun</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                    </select>
+                    <i class="fas fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                    <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-[10px] pointer-events-none"></i>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div>
+                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2 ml-1">Cari Spesifik</label>
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Cari nomor, instansi..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all text-gray-600 font-medium placeholder-gray-400">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-transparent md:bg-white rounded-none md:rounded-2xl shadow-none md:shadow-sm border-none md:border md:border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-50 flex items-center justify-between bg-white rounded-t-2xl md:rounded-none md:bg-transparent shadow-sm md:shadow-none mb-4 md:mb-0">
+            <h3 class="font-bold text-gray-800">Daftar Dokumen Terarsip</h3>
+            <span id="documentCount" class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-full uppercase tracking-wider">{{ surat_list|length }} Dokumen</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse surat-table block md:table border border-gray-200">
+                <thead class="hidden md:table-header-group">
+                    <tr class="bg-gray-50/50">
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white whitespace-nowrap print-nowrap">Nomor Surat</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white text-center whitespace-nowrap print-nowrap">Jenis</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white whitespace-nowrap">Instansi</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white whitespace-nowrap w-1/4">Perihal</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white whitespace-nowrap print-nowrap">Tanggal</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white text-center whitespace-nowrap print-nowrap">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 bg-white text-center whitespace-nowrap">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50 block md:table-row-group">
+                    {% for s in surat_list %}
+                    <tr class="hover:bg-gray-50 transition-colors group flex flex-col md:table-row bg-white border border-gray-200 md:border-none rounded-2xl md:rounded-none p-5 md:p-0 mb-4 md:mb-0 shadow-sm md:shadow-none gap-3 md:gap-0 relative" data-jenis="{{ s.jenis }}" data-tahun="{{ s.tanggal_surat|date:'Y' }}" data-tanggal="{{ s.tanggal_surat|date:'Y-m-d' }}" data-status="{{ s.status }}" data-file-url="{% if s.jenis == 'masuk' %}{% if s.file_surat %}{{ s.file_surat.url }}{% endif %}{% else %}{% if s.file_draf %}{{ s.file_draf.url }}{% endif %}{% endif %}">
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell border-none md:border-b md:border-gray-100 align-middle print-nowrap">
+                            <span class="text-sm font-bold text-blue-600 hover:underline cursor-pointer block truncate md:whitespace-nowrap">{{ s.nomor_surat }}</span>
+                        </td>
+                        <td class="absolute top-5 right-5 block md:relative md:top-0 md:right-0 md:table-cell md:px-6 md:py-5 text-center border-none md:border-b md:border-gray-100 align-middle print-nowrap">
+                            <span class="badge-status-surat {{ s.status|lower }} hidden">{{ s.status }}</span>
+                            {% if s.jenis == 'masuk' %}
+                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-indigo-50 text-indigo-500 border border-indigo-100 badge-jenis print-hide">Masuk</span>
+                            <span class="hidden print-show font-bold uppercase text-black text-[11px]">Masuk</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase bg-teal-50 text-teal-500 border border-teal-100 badge-jenis print-hide">Keluar</span>
+                            <span class="hidden print-show font-bold uppercase text-black text-[11px]">Keluar</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell border-none md:border-b md:border-gray-100 align-middle">
+                            <div class="flex items-center md:block">
+                                <span class="md:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Instansi</span>
+                                <span class="text-sm font-semibold text-gray-700 block truncate md:max-w-[200px]" title="{% if s.jenis == 'masuk' %}{{ s.pengirim|default:'-' }}{% else %}{{ s.tujuan|default:'-' }}{% endif %}">
+                                    {% if s.jenis == 'masuk' %}{{ s.pengirim|default:'-' }}{% else %}{{ s.tujuan|default:'-' }}{% endif %}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell border-none md:border-b md:border-gray-100 align-middle">
+                            <div class="flex items-center md:block">
+                                <span class="md:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Perihal</span>
+                                <p class="text-sm text-gray-500 block md:max-w-[250px] md:line-clamp-2 lg:max-w-[300px] truncate md:whitespace-normal" title="{{ s.perihal|default:'-' }}">{{ s.perihal|default:'-' }}</p>
+                            </div>
+                        </td>
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell border-none md:border-b md:border-gray-100 align-middle print-nowrap">
+                            <div class="flex items-center md:block">
+                                <span class="md:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Tanggal</span>
+                                <span class="text-xs font-bold text-gray-400 italic md:whitespace-nowrap">{{ s.tanggal_surat|date:"d M Y" }}</span>
+                            </div>
+                        </td>
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell text-center border-none md:border-b md:border-gray-100 align-middle print-nowrap">
+                            <div class="flex items-center md:justify-center gap-2">
+                                <span class="md:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Status</span>
+                                <span class="badge-status-surat {{ s.status|lower }} print-hide md:whitespace-nowrap">{{ s.status }}</span>
+                                <span class="hidden print-show font-bold uppercase text-black text-[11px]">{{ s.status }}</span>
+                            </div>
+                        </td>
+                        <td class="px-0 md:px-6 py-0 md:py-5 block md:table-cell border-none md:border-b md:border-gray-100 align-middle">
+                            <div class="flex items-center md:justify-center gap-2">
+                                <span class="md:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Aksi</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center shadow-sm shrink-0" title="Lihat Detail">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                    <button type="button" class="w-8 h-8 rounded-lg bg-gray-50 text-gray-400 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm shrink-0" title="Unduh Dokumen">
+                                        <i class="fas fa-download text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="block md:table-row">
+                        <td colspan="7" class="px-6 py-12 text-center block md:table-cell border md:border-gray-200">
+                            <div class="flex flex-col items-center justify-center opacity-30">
+                                <i class="fas fa-archive text-5xl mb-4 text-gray-300"></i>
+                                <p class="text-sm font-medium text-gray-500">Belum ada dokumen yang terarsip.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'accounts/js/arsip.js' %}?v=66"></script>
+    <script>
+        function exportToExcel() {
+            const table = document.querySelector('.surat-table');
+            if (!table) return;
+            
+            const rows = table.querySelectorAll('tbody tr');
+            const headers = ['Nomor Surat', 'Jenis', 'Instansi/Pengirim/Tujuan', 'Perihal', 'Tanggal'];
+            
+            let csvData = [];
+            csvData.push(headers.join(','));
+            
+            let count = 0;
+            rows.forEach(row => {
+                // Hanya ekspor baris yang terlihat (visible)
+                if (row.style.display !== 'none') {
+                    const cells = row.querySelectorAll('td');
+                    if (cells.length >= 5) {
+                        const nomorSurat = `"${cells[0].textContent.trim().replace(/"/g, '""')}"`;
+                        const jenis = `"${cells[1].textContent.trim().replace(/"/g, '""')}"`;
+                        const instansi = `"${cells[2].textContent.trim().replace(/"/g, '""')}"`;
+                        const perihal = `"${cells[3].textContent.trim().replace(/"/g, '""')}"`;
+                        const tanggal = `"${cells[4].textContent.trim().replace(/"/g, '""')}"`;
+                        
+                        csvData.push([nomorSurat, jenis, instansi, perihal, tanggal].join(','));
+                        count++;
+                    }
+                }
+            });
+            
+            if (count === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('Tidak ada data untuk diexport', 'error');
+                } else {
+                    alert('Tidak ada data untuk diexport');
+                }
+                return;
+            }
+            
+            // Tambahkan BOM agar karakter khusus terbaca dengan benar di Excel
+            const csvContent = "\uFEFF" + csvData.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Arsip_Digital_eOffice.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            if (typeof showToast === 'function') {
+                showToast(`Berhasil mengekspor ${count} data ke Excel!`, 'success');
+            }
+        }
+    </script>
+{% endblock %}

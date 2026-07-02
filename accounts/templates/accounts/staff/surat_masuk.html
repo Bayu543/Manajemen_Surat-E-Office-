@@ -1,0 +1,379 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Tugas Saya{% endblock %}
+{% block page_title %}Tugas Saya{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'accounts/css/surat.css' %}?v=75">
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Premium Tab Interactions & Styles */
+        .tab-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+        }
+        
+        .tab-item:not(.active) {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid #E2E8F0 !important;
+            color: #64748B !important;
+        }
+        
+        .tab-item:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Inactive Tab Labels & Icons */
+        .tab-item:not(.active) .tab-label {
+            color: #64748B !important;
+        }
+        .tab-item:not(.active) i {
+            opacity: 0.8 !important;
+        }
+        .tab-item:not(.active) span:last-child {
+            background-color: #F1F5F9 !important;
+            color: #475569 !important;
+            transition: all 0.3s ease;
+        }
+
+        /* Specific inactive colors for icons when not active */
+        .tab-item[data-status="all"]:not(.active) i {
+            color: #3B82F6 !important;
+        }
+        .tab-item[data-status="baru"]:not(.active) i {
+            color: #3B82F6 !important;
+        }
+        .tab-item[data-status="draft"]:not(.active) i {
+            color: #3B82F6 !important;
+        }
+        .tab-item[data-status="diproses"]:not(.active) i {
+            color: #F59E0B !important;
+        }
+        .tab-item[data-status="diajukan"]:not(.active) i {
+            color: #F59E0B !important;
+        }
+        .tab-item[data-status="selesai"]:not(.active) i {
+            color: #10B981 !important;
+        }
+        .tab-item[data-status="disetujui"]:not(.active) i {
+            color: #10B981 !important;
+        }
+
+        /* All & Baru Inactive Hover */
+        .tab-item[data-status="all"]:not(.active):hover,
+        .tab-item[data-status="baru"]:not(.active):hover,
+        .tab-item[data-status="draft"]:not(.active):hover {
+            background-color: #EFF6FF !important;
+            color: #2563EB !important;
+            border-color: #DBEAFE !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08) !important;
+        }
+        .tab-item[data-status="all"]:not(.active):hover .tab-label,
+        .tab-item[data-status="baru"]:not(.active):hover .tab-label,
+        .tab-item[data-status="draft"]:not(.active):hover .tab-label {
+            color: #2563EB !important;
+        }
+        .tab-item[data-status="all"]:not(.active):hover i,
+        .tab-item[data-status="baru"]:not(.active):hover i,
+        .tab-item[data-status="draft"]:not(.active):hover i {
+            color: #2563EB !important;
+            opacity: 1 !important;
+        }
+        .tab-item[data-status="all"]:not(.active):hover span:last-child,
+        .tab-item[data-status="baru"]:not(.active):hover span:last-child,
+        .tab-item[data-status="draft"]:not(.active):hover span:last-child {
+            background-color: #DBEAFE !important;
+            color: #2563EB !important;
+        }
+
+        /* Diproses Inactive Hover */
+        .tab-item[data-status="diproses"]:not(.active):hover,
+        .tab-item[data-status="diajukan"]:not(.active):hover {
+            background-color: #FFFBEB !important;
+            color: #D97706 !important;
+            border-color: #FDE68A !important;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.08) !important;
+        }
+        .tab-item[data-status="diproses"]:not(.active):hover .tab-label,
+        .tab-item[data-status="diajukan"]:not(.active):hover .tab-label {
+            color: #D97706 !important;
+        }
+        .tab-item[data-status="diproses"]:not(.active):hover i,
+        .tab-item[data-status="diajukan"]:not(.active):hover i {
+            color: #D97706 !important;
+            opacity: 1 !important;
+        }
+        .tab-item[data-status="diproses"]:not(.active):hover span:last-child,
+        .tab-item[data-status="diajukan"]:not(.active):hover span:last-child {
+            background-color: #FDE68A !important;
+            color: #D97706 !important;
+        }
+
+        /* Selesai Inactive Hover */
+        .tab-item[data-status="selesai"]:not(.active):hover,
+        .tab-item[data-status="disetujui"]:not(.active):hover {
+            background-color: #ECFDF5 !important;
+            color: #059669 !important;
+            border-color: #A7F3D0 !important;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.08) !important;
+        }
+        .tab-item[data-status="selesai"]:not(.active):hover .tab-label,
+        .tab-item[data-status="disetujui"]:not(.active):hover .tab-label {
+            color: #059669 !important;
+        }
+        .tab-item[data-status="selesai"]:not(.active):hover i,
+        .tab-item[data-status="disetujui"]:not(.active):hover i {
+            color: #059669 !important;
+            opacity: 1 !important;
+        }
+        .tab-item[data-status="selesai"]:not(.active):hover span:last-child,
+        .tab-item[data-status="disetujui"]:not(.active):hover span:last-child {
+            background-color: #A7F3D0 !important;
+            color: #059669 !important;
+        }
+
+        /* Active Tab Styles override everything */
+        .tab-item.active {
+            color: #FFFFFF !important;
+            border-color: transparent !important;
+        }
+        
+        /* Status-Specific Active Backgrounds & Shadows */
+        .tab-item[data-status="all"].active,
+        .tab-item[data-status="baru"].active,
+        .tab-item[data-status="draft"].active {
+            background-color: #2563EB !important; /* bg-blue-600 */
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25), 0 4px 6px -4px rgba(37, 99, 235, 0.25) !important; /* shadow-blue-500/25 */
+        }
+        
+        .tab-item[data-status="diproses"].active,
+        .tab-item[data-status="diajukan"].active {
+            background-color: #D97706 !important; /* bg-amber-500 */
+            box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.2), 0 4px 6px -4px rgba(217, 119, 6, 0.2) !important; /* shadow-amber-500/20 */
+        }
+        
+        .tab-item[data-status="selesai"].active,
+        .tab-item[data-status="disetujui"].active {
+            background-color: #059669 !important; /* bg-emerald-600 */
+            box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.25), 0 4px 6px -4px rgba(5, 150, 105, 0.25) !important; /* shadow-emerald-500/25 */
+        }
+
+        .tab-item.active .tab-label {
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
+        }
+        .tab-item.active i {
+            color: #FFFFFF !important;
+            opacity: 1 !important;
+        }
+        .tab-item.active span:last-child {
+            background-color: rgba(255, 255, 255, 0.25) !important;
+            color: #FFFFFF !important;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="p-6">
+    <!-- Status Filter Dropdown (Mobile Only) -->
+    <div class="mb-6 block lg:hidden">
+        <div class="relative">
+            <select id="mobileStatusFilter" class="appearance-none w-full bg-white border border-slate-200 text-slate-700 font-bold text-sm rounded-2xl px-5 py-3.5 pr-10 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                <option value="all">Semua ({{ surat_list|length }})</option>
+                <option value="baru">Baru</option>
+                <option value="diproses">Diproses</option>
+                <option value="selesai">Selesai</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                <i class="fas fa-chevron-down text-xs"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Filter Tabs (Premium Pills) -->
+    <div class="mb-8 hidden lg:flex flex-wrap items-center gap-3 pb-2 xl:pb-0">
+        <button class="tab-item active group flex items-center gap-3 px-6 py-3 bg-blue-600 rounded-2xl font-extrabold text-sm shadow-lg shadow-blue-500/25 transition-all active:scale-95" data-status="all">
+            <i class="fas fa-layer-group text-xs opacity-70 transition-transform duration-300 group-hover:scale-110"></i>
+            <span class="tab-label">Semua</span>
+            <span class="bg-white/20 px-2.5 py-0.5 rounded-lg text-[10px] font-black">{{ surat_list|length }}</span>
+        </button>
+        <button class="tab-item group flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-sm border border-slate-100 text-slate-500 rounded-2xl font-bold text-sm shadow-sm shadow-slate-100/50 transition-all active:scale-95" data-status="baru">
+            <i class="fas fa-envelope text-xs text-blue-400 transition-transform duration-300 group-hover:scale-110"></i>
+            <span class="tab-label">Baru</span>
+            <span class="bg-blue-50 text-blue-600 px-2.5 py-0.5 rounded-lg text-[10px] font-black" id="countBaru_pill">0</span>
+        </button>
+        <button class="tab-item group flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-sm border border-slate-100 text-slate-500 rounded-2xl font-bold text-sm shadow-sm shadow-slate-100/50 transition-all active:scale-95" data-status="diproses">
+            <i class="fas fa-clock text-xs text-amber-400 transition-transform duration-300 group-hover:scale-110"></i>
+            <span class="tab-label">Diproses</span>
+            <span class="bg-amber-50 text-amber-600 px-2.5 py-0.5 rounded-lg text-[10px] font-black" id="countProses_pill">0</span>
+        </button>
+        <button class="tab-item group flex items-center gap-3 px-6 py-3 bg-white/90 backdrop-blur-sm border border-slate-100 text-slate-500 rounded-2xl font-bold text-sm shadow-sm shadow-slate-100/50 transition-all active:scale-95" data-status="selesai">
+            <i class="fas fa-check-circle text-xs text-emerald-400 transition-transform duration-300 group-hover:scale-110"></i>
+            <span class="tab-label">Selesai</span>
+            <span class="bg-emerald-50 text-emerald-600 px-2.5 py-0.5 rounded-lg text-[10px] font-black" id="countSelesai_pill">0</span>
+        </button>
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-transparent lg:bg-white rounded-none lg:rounded-[2.5rem] shadow-none lg:shadow-xl lg:shadow-gray-500/5 border-none lg:border lg:border-gray-100 overflow-hidden">
+        <!-- Table -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse block lg:table">
+                <thead class="hidden lg:table-header-group">
+                    <tr class="bg-gray-50/50">
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 w-[15%] min-w-[110px]">Nomor Surat</th>
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 w-[20%] min-w-[120px]">Pengirim</th>
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 w-[28%] min-w-[150px]">Perihal</th>
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 w-[12%] whitespace-nowrap">Tanggal</th>
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center w-[10%] min-w-[70px] whitespace-nowrap">Status</th>
+                        <th class="px-3 py-3.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center w-[15%] min-w-[130px] whitespace-nowrap">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="suratTableBody" class="divide-y divide-gray-50 block lg:table-row-group">
+                    {% for s in surat_list %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group cursor-pointer activity-row block lg:table-row bg-white border border-gray-100 lg:border-none rounded-2xl lg:rounded-none p-5 mb-4 lg:mb-0 shadow-sm lg:shadow-none flex flex-col lg:flex-row gap-3 lg:gap-0 relative" data-status="{{ s.status|lower }}" data-id="{{ s.id }}" onclick="triggerViewModal(this, event)">
+                        <td class="px-0 lg:px-3 py-0 lg:py-3 block lg:table-cell max-w-none lg:max-w-[110px] border-none lg:border-b lg:border-gray-100">
+                            <span class="text-sm font-bold text-blue-600 group-hover:underline block truncate w-3/4 lg:w-auto" title="{{ s.nomor_surat }}">{{ s.nomor_surat }}</span>
+                        </td>
+                        <td class="px-0 lg:px-3 py-0 lg:py-3 block lg:table-cell max-w-none lg:max-w-[120px] border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Pengirim</span>
+                                <span class="text-sm font-semibold text-gray-700 block truncate" title="{{ s.pengirim }}">{{ s.pengirim }}</span>
+                            </div>
+                        </td>
+                        <td class="px-0 lg:px-3 py-0 lg:py-3 block lg:table-cell max-w-none lg:max-w-[150px] border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Perihal</span>
+                                <span class="text-sm text-gray-600 block truncate" title="{{ s.perihal }}">{{ s.perihal }}</span>
+                            </div>
+                        </td>
+                        <td class="px-0 lg:px-3 py-0 lg:py-3 block lg:table-cell whitespace-normal lg:whitespace-nowrap border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Tanggal</span>
+                                <div class="flex flex-col">
+                                    <span class="text-xs font-bold text-gray-700">{{ s.tanggal_surat|date:"d M Y" }}</span>
+                                    <span class="text-[10px] text-gray-400">Diterima: {{ s.tanggal_diterima|date:"d/m/y" }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="absolute top-5 right-5 block lg:relative lg:top-0 lg:right-0 lg:table-cell text-center whitespace-nowrap border-none lg:border-b lg:border-gray-100">
+                            {% if s.status == 'baru' %}
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-blue-100 text-blue-600 border border-blue-200 inline-block">Baru</span>
+                            {% elif s.status == 'diproses' %}
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-100 text-amber-600 border border-amber-200 inline-block">Diproses</span>
+                            {% elif s.status == 'selesai' %}
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-100 text-emerald-600 border border-emerald-200 inline-block">Selesai</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-0 lg:px-3 py-0 lg:py-3 block lg:table-cell border-none lg:border-b lg:border-gray-100 mt-2 lg:mt-0 border-t border-gray-50 lg:border-none pt-3 lg:pt-0">
+                            <div class="flex lg:justify-center justify-end items-center gap-3">
+                                <!-- Tombol Lihat Detail -->
+                                <button type="button" class="btn-icon-surat view w-9 lg:w-8 h-9 lg:h-8 rounded-xl lg:rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center border border-gray-100 lg:border-none shadow-sm lg:shadow-none" title="Detail"
+                                    data-id="{{ s.id }}" data-nomor="{{ s.nomor_surat }}" 
+                                    data-pengirim="{{ s.pengirim }}" data-perihal="{{ s.perihal }}" 
+                                    data-tanggal="{{ s.tanggal_surat|date:'d M Y' }}" 
+                                    data-diterima="{{ s.tanggal_diterima|date:'d M Y, H:i' }} WIB"
+                                    data-catatan="{{ s.catatan|default:'Tidak ada instruksi khusus dari pimpinan.' }}"
+                                    data-staffnama="{% if s.ditugaskan_ke %}{{ s.ditugaskan_ke.get_full_name|default:s.ditugaskan_ke.username }}{% else %}Belum ditugaskan{% endif %}"
+                                    data-status="{{ s.status }}"
+                                    data-file="{% if s.file_surat %}{{ s.file_surat.url }}{% else %}none{% endif %}"
+                                    onclick="event.stopPropagation(); openDetailModal(this);">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </button>
+                                
+                                <!-- Dropdown Status Inline -->
+                                <div class="relative" onclick="event.stopPropagation();">
+                                    <select class="status-dropdown px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl font-bold text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all {% if s.status == 'selesai' %}text-gray-500 opacity-70 cursor-not-allowed{% else %}text-gray-700 hover:bg-white hover:border-blue-500 cursor-pointer{% endif %}" data-id="{{ s.id }}" onchange="updateSuratStatusInline(this, {{ s.id }})" {% if s.status == 'selesai' %}disabled{% endif %}>
+                                        <option value="baru" {% if s.status == 'baru' %}selected{% endif %}>Baru</option>
+                                        <option value="diproses" {% if s.status == 'diproses' %}selected{% endif %}>Diproses</option>
+                                        <option value="selesai" {% if s.status == 'selesai' %}selected{% endif %}>Selesai</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="block lg:table-row bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+                        <td colspan="6" class="px-6 py-16 text-center block lg:table-cell">
+                            <div class="flex flex-col items-center justify-center opacity-40">
+                                <i class="fas fa-inbox text-5xl mb-4 text-gray-300"></i>
+                                <p class="text-sm font-medium text-gray-500">Belum ada surat masuk atau tugas untuk Anda.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-8 py-5 border-t border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <span class="pagination-info text-xs font-bold text-gray-400">Menampilkan {{ surat_list|length }} dari {{ surat_list|length }} surat</span>
+        </div>
+    </div>
+</div>
+
+{% include "accounts/staff/modals_surat_masuk.html" %}
+{% endblock %}
+
+{% block extra_js %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="{% static 'accounts/js/surat.js' %}?v=77"></script>
+    <script>
+        function triggerViewModal(rowEl, event) {
+            if (!event.target.closest('button') && !event.target.closest('select')) {
+                const viewBtn = rowEl.querySelector('.btn-icon-surat.view');
+                if (viewBtn) {
+                    openDetailModal(viewBtn);
+                }
+            }
+        }
+
+        function updateSuratStatusInline(selectEl, id) {
+            const newStatus = selectEl.value;
+            const csrfTokenEl = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (!csrfTokenEl) {
+                alert('Token keamanan tidak ditemukan.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('status', newStatus);
+            formData.append('csrfmiddlewaretoken', csrfTokenEl.value);
+
+            selectEl.disabled = true;
+            selectEl.classList.add('opacity-50');
+
+            fetch(`/accounts/surat-masuk/${id}/status/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    selectEl.disabled = false;
+                    selectEl.classList.remove('opacity-50');
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal memperbarui status surat.');
+                    selectEl.disabled = false;
+                    selectEl.classList.remove('opacity-50');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Terjadi kesalahan pada server.');
+                selectEl.disabled = false;
+                selectEl.classList.remove('opacity-50');
+            });
+        }
+    </script>
+{% endblock %}
+

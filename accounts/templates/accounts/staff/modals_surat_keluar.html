@@ -1,0 +1,484 @@
+<!-- Modal Form Surat Keluar (Konsep / Draft) -->
+<div id="modalSuratKeluar" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" onclick="closeModalKeluar()"></div>
+    
+    <div class="relative bg-white w-full max-w-5xl rounded-[2.25rem] shadow-2xl overflow-hidden flex flex-col z-10 max-h-[92vh] border border-gray-100">
+        <!-- Bagian Atas (Header) -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0 bg-white">
+            <div>
+                <h2 class="text-xl font-bold text-gray-800 flex items-center gap-3">
+                    <i class="fas fa-paper-plane text-blue-600"></i>
+                    <span>Ajukan Konsep Surat Keluar</span>
+                </h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Lengkapi data draf surat sebelum dikirim ke Admin</p>
+            </div>
+            <button type="button" onclick="closeModalKeluar()" class="w-10 h-10 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Body Form -->
+        <div class="p-8 overflow-y-auto flex-1">
+            <form id="formSuratKeluar" action="{% url 'buat_draft' %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <!-- Grid Kiri: Data Surat -->
+                    <div class="lg:col-span-6 space-y-6">
+                        <div class="border-b pb-3 border-gray-100 flex items-center gap-2 text-blue-600">
+                            <i class="fas fa-envelope-open-text"></i>
+                            <h3 class="text-xs font-black uppercase tracking-wider">Data Administrasi Surat</h3>
+                        </div>
+
+                        <!-- Field Klasifikasi (Required) -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Klasifikasi Tata Naskah <span class="text-red-500">*</span></label>
+                            <select name="klasifikasi" id="klasifikasiSelect" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                                <option value="">Pilih Kode Klasifikasi...</option>
+                                <option value="000 - Umum">000 - Umum</option>
+                                <option value="100 - Pemerintahan">100 - Pemerintahan</option>
+                                <option value="200 - Politik">200 - Politik</option>
+                                <option value="300 - Keamanan">300 - Keamanan</option>
+                                <option value="400 - Kesejahteraan Rakyat">400 - Kesejahteraan Rakyat</option>
+                                <option value="500 - Perekonomian">500 - Perekonomian</option>
+                                <option value="600 - Pekerjaan Umum dan Penataan Ruang">600 - Pekerjaan Umum dan Penataan Ruang</option>
+                                <option value="700 - Pengawasan">700 - Pengawasan</option>
+                                <option value="800 - Kepegawaian">800 - Kepegawaian</option>
+                                <option value="900 - Keuangan">900 - Keuangan</option>
+                            </select>
+                        </div>
+
+                        <!-- Field Tujuan (Searchable Select OPD, Required) -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Tujuan Instansi / OPD <span class="text-red-500">*</span></label>
+                            <select name="tujuan" id="tujuanSelect" required class="select2-opd w-full bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-800">
+                                <option value="">Cari dan Pilih Instansi Tujuan...</option>
+                                <option value="Dinas Komunikasi, Informatika, Persandian dan Statistik (Diskominfosantik)">Dinas Komunikasi, Informatika, Persandian dan Statistik (Diskominfosantik)</option>
+                                <option value="Dinas Pendidikan (Disdik)">Dinas Pendidikan (Disdik)</option>
+                                <option value="Dinas Kesehatan (Dinkes)">Dinas Kesehatan (Dinkes)</option>
+                                <option value="Dinas Pekerjaan Umum dan Penataan Ruang (PUPR)">Dinas Pekerjaan Umum dan Penataan Ruang (PUPR)</option>
+                                <option value="Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan (Disperkimtan)">Dinas Perumahan Rakyat, Kawasan Permukiman dan Pertanahan (Disperkimtan)</option>
+                                <option value="Dinas Sosial (Dinsos)">Dinas Sosial (Dinsos)</option>
+                                <option value="Dinas Tenaga Kerja (Disnaker)">Dinas Tenaga Kerja (Disnaker)</option>
+                                <option value="Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil)">Dinas Kependudukan dan Pencatatan Sipil (Disdukcapil)</option>
+                                <option value="Dinas Perhubungan (Dishub)">Dinas Perhubungan (Dishub)</option>
+                                <option value="Dinas Lingkungan Hidup (DLH)">Dinas Lingkungan Hidup (DLH)</option>
+                                <option value="Dinas Pemberdayaan Masyarakat dan Desa (DPMD)">Dinas Pemberdayaan Masyarakat dan Desa (DPMD)</option>
+                                <option value="Dinas Pengendalian Penduduk dan Keluarga Berencana (DPPKB)">Dinas Pengendalian Penduduk dan Keluarga Berencana (DPPKB)</option>
+                                <option value="Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu (DPMPTSP)">Dinas Penanaman Modal dan Pelayanan Terpadu Satu Pintu (DPMPTSP)</option>
+                                <option value="Dinas Pariwisata (Dispar)">Dinas Pariwisata (Dispar)</option>
+                                <option value="Dinas Pertanian (Distan)">Dinas Pertanian (Distan)</option>
+                                <option value="Badan Kepegawaian dan Pengembangan SDM (BKPSDM)">Badan Kepegawaian dan Pengembangan SDM (BKPSDM)</option>
+                                <option value="Badan Perencanaan Pembangunan Daerah (Bappeda)">Badan Perencanaan Pembangunan Daerah (Bappeda)</option>
+                                <option value="Badan Pengelolaan Keuangan Daerah (BPKD)">Badan Pengelolaan Keuangan Daerah (BPKD)</option>
+                                <option value="Badan Pendapatan Daerah (Bapenda)">Badan Pendapatan Daerah (Bapenda)</option>
+                                <option value="Inspektorat Daerah Kabupaten Bekasi">Inspektorat Daerah Kabupaten Bekasi</option>
+                                <option value="Satuan Polisi Pamong Praja (Satpol PP)">Satuan Polisi Pamong Praja (Satpol PP)</option>
+                                <option value="Sekretariat Daerah Kabupaten Bekasi">Sekretariat Daerah Kabupaten Bekasi</option>
+                            </select>
+                        </div>
+
+                        <!-- Field Perihal (Required) -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Perihal / Subjek Surat <span class="text-red-500">*</span></label>
+                            <input type="text" name="perihal" required placeholder="Rincikan perihal atau maksud surat"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-semibold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                        </div>
+
+                        <!-- Field Tanggal (Required) -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Tanggal Rencana Keluar <span class="text-red-500">*</span></label>
+                            <input type="date" name="tanggal_surat" required id="inputTanggalKeluar"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Grid Kanan: Dokumen & Pesan -->
+                    <div class="lg:col-span-6 space-y-6 flex flex-col">
+                        <div class="border-b pb-3 border-gray-100 flex items-center gap-2 text-indigo-600">
+                            <i class="fas fa-file-upload"></i>
+                            <h3 class="text-xs font-black uppercase tracking-wider">Dokumen Lampiran & Pengantar</h3>
+                        </div>
+
+                        <!-- Field Upload File (Drag & Drop, Max 5MB) -->
+                        <div class="space-y-2">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Upload File Draf (PDF / DOC / DOCX - Maks. 5 MB) <span class="text-red-500">*</span></label>
+                            <div id="fileDropZone" class="relative group border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50 hover:bg-blue-50/50 hover:border-blue-400 transition-all p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[160px]">
+                                <input type="file" name="file_draf" id="fileDrafInput" required accept=".pdf,.docx,.doc" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                <div class="w-14 h-14 rounded-2xl bg-white shadow-md flex items-center justify-center text-blue-500 mb-3 group-hover:scale-110 transition-transform">
+                                    <i class="fas fa-cloud-upload-alt text-2xl"></i>
+                                </div>
+                                <span id="fileNameDisplay" class="text-xs font-black text-gray-700 block mb-1">Klik atau seret dokumen draf ke sini</span>
+                                <span id="fileSizeDisplay" class="text-[11px] font-bold text-gray-400">Maksimal 5MB (Format PDF atau DOC/DOCX)</span>
+                                <span id="fileErrorDisplay" class="text-xs font-bold text-red-500 mt-2 bg-red-50 px-3 py-1 rounded-full border border-red-200 hidden"></span>
+                            </div>
+                        </div>
+
+                        <!-- Field Catatan Staff (Optional) -->
+                        <div class="space-y-2 flex-1 flex flex-col">
+                            <label class="text-[11px] font-black text-gray-400 uppercase tracking-widest block ml-1">Catatan Pengantar untuk Admin (Opsional)</label>
+                            <textarea name="catatan" rows="4" placeholder="Tuliskan keterangan pengantar, catatan khusus, atau referensi disposisi untuk memudahkan validasi Admin..."
+                                class="w-full flex-1 px-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-semibold text-gray-800 focus:bg-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bagian Bawah (Action Buttons) -->
+        <div class="px-8 py-6 border-t border-gray-100 bg-gray-50/80 flex items-center justify-end gap-4 shrink-0 rounded-b-[2.25rem]">
+            <button type="button" onclick="closeModalKeluar()" class="px-7 py-3 rounded-2xl font-bold text-sm text-gray-500 hover:bg-gray-200/60 transition-all active:scale-95">
+                Batal
+            </button>
+            <button type="submit" form="formSuratKeluar" name="action_type" value="draft" class="px-7 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-bold text-sm shadow-lg shadow-amber-500/25 flex items-center gap-2 transition-all active:scale-95">
+                <i class="fas fa-save text-xs"></i>
+                <span>Simpan Draft</span>
+            </button>
+            <button type="submit" form="formSuratKeluar" name="action_type" value="diajukan" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm shadow-xl shadow-blue-500/25 flex items-center gap-2.5 transition-all active:scale-95">
+                <i class="fas fa-paper-plane text-xs"></i>
+                <span>Simpan & Ajukan ke Admin</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail Surat Keluar -->
+<div id="modalDetailSuratKeluar" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" onclick="closeDetailKeluarFunc()"></div>
+    
+    <div class="relative bg-white w-full max-w-3xl rounded-[2.25rem] shadow-2xl overflow-hidden flex flex-col z-10 max-h-[85vh] border border-gray-100">
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div>
+                <h2 class="text-xl font-black text-gray-800">Detail Surat Keluar</h2>
+                <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Informasi Draf & Pratinjau Dokumen</p>
+            </div>
+            <button type="button" onclick="closeDetailKeluarFunc()" class="w-10 h-10 rounded-2xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-y-auto flex-1">
+            <div class="lg:col-span-6 flex flex-col justify-between space-y-4">
+                <div class="space-y-3">
+                    <h3 class="text-xs font-black uppercase text-blue-600 tracking-wider flex items-center gap-2 border-b pb-1.5 border-gray-100">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Data Administrasi Surat</span>
+                    </h3>
+                    
+                    <div class="space-y-2.5">
+                        <div class="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Nomor Surat / Klasifikasi</span>
+                            <p id="detKeluarNomor" class="text-xs font-black text-gray-800">-</p>
+                        </div>
+                        <div class="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Tujuan / Penerima</span>
+                            <p id="detKeluarTujuan" class="text-xs font-bold text-gray-700">-</p>
+                        </div>
+                        <div class="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Perihal</span>
+                            <p id="detKeluarPerihal" class="text-xs font-medium text-gray-700 leading-relaxed whitespace-pre-wrap">-</p>
+                        </div>
+                        <div class="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100">
+                            <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-0.5">Tanggal Dibuat</span>
+                            <p id="detKeluarTanggal" class="text-xs font-bold text-gray-700">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gradient-to-br from-blue-50 via-indigo-50/50 to-white border border-blue-100 rounded-2xl shadow-sm flex items-center justify-between">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-600 block">Status Surat</span>
+                    <div id="detKeluarStatusWrapper">
+                        <span id="detKeluarStatus" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">-</span>
+                    </div>
+                </div>
+
+                <div id="detKeluarCatatanWrapper" class="hidden mt-3 p-4 bg-gradient-to-br from-red-50 to-rose-50/50 border border-red-200 rounded-2xl shadow-sm">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-red-600 flex items-center gap-2 mb-2">
+                        <i class="fas fa-exclamation-triangle"></i> Catatan Revisi
+                    </span>
+                    <p id="detKeluarCatatan" class="text-xs font-semibold text-red-700 leading-relaxed whitespace-pre-wrap">-</p>
+                </div>
+            </div>
+
+            <!-- Kolom Kanan (PDF Viewer) -->
+            <div class="lg:col-span-6 flex flex-col space-y-3 h-full min-h-[300px]">
+                <h3 class="text-xs font-black uppercase text-blue-600 tracking-wider flex items-center gap-2 border-b pb-1.5 border-gray-100 shrink-0">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>Pratinjau Dokumen</span>
+                </h3>
+                
+                <div class="flex-1 bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-inner flex flex-col items-center justify-center relative min-h-[240px]">
+                    <iframe id="pdfFrameKeluar" src="" class="w-full h-full absolute inset-0 hidden border-0" title="Pratinjau Dokumen"></iframe>
+                    <div id="pdfNoFileKeluar" class="text-center p-5 space-y-2">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-xl shadow-sm border border-slate-700">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <p class="text-xs font-bold text-slate-300">Pratinjau tidak tersedia.</p>
+                        <p class="text-[9px] text-slate-500">File mungkin dalam format yang tidak didukung pratinjau browser.</p>
+                    </div>
+                </div>
+
+                <div id="btnUnduhKeluarWrapper" class="hidden shrink-0">
+                    <a id="btnUnduhKeluar" href="#" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-xs transition-all shadow-md active:scale-95">
+                        <i class="fas fa-cloud-download-alt text-sm"></i>
+                        <span>Unduh Dokumen</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-8 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end shrink-0 rounded-b-[2.25rem]">
+            <button type="button" onclick="closeDetailKeluarFunc()" class="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-xl transition-all active:scale-95 shadow-sm">Tutup Pratinjau</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModalKeluar() {
+    const modal = document.getElementById('modalSuratKeluar');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        
+        // Auto set current date to inputTanggalKeluar
+        const todayInput = document.getElementById('inputTanggalKeluar');
+        if (todayInput && !todayInput.value) {
+            todayInput.value = new Date().toISOString().split('T')[0];
+        }
+    }
+}
+
+function closeModalKeluar() {
+    const modal = document.getElementById('modalSuratKeluar');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+}
+
+// File Input Drag & Drop + Size Limit Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('fileDrafInput');
+    const fileDropZone = document.getElementById('fileDropZone');
+    const fileNameDisplay = document.getElementById('fileNameDisplay');
+    const fileSizeDisplay = document.getElementById('fileSizeDisplay');
+    const fileErrorDisplay = document.getElementById('fileErrorDisplay');
+
+    if (fileInput && fileDropZone) {
+        fileInput.addEventListener('change', function() {
+            handleFileSelection(this.files[0]);
+        });
+
+        ['dragover', 'dragenter'].forEach(eventName => {
+            fileDropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                fileDropZone.classList.add('border-blue-500', 'bg-blue-50/70');
+            });
+        });
+
+        ['dragleave', 'dragend', 'drop'].forEach(eventName => {
+            fileDropZone.addEventListener(eventName, (e) => {
+                fileDropZone.classList.remove('border-blue-500', 'bg-blue-50/70');
+            });
+        });
+
+        fileDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelection(e.dataTransfer.files[0]);
+            }
+        });
+
+        function handleFileSelection(file) {
+            if (!file) return;
+            
+            // Limit 5MB (5 * 1024 * 1024 bytes)
+            if (file.size > 5 * 1024 * 1024) {
+                if (fileErrorDisplay) {
+                    fileErrorDisplay.textContent = 'Gagal: Ukuran file melebihi batas 5MB.';
+                    fileErrorDisplay.classList.remove('hidden');
+                }
+                fileInput.value = '';
+                fileNameDisplay.textContent = 'Klik atau seret dokumen draf ke sini';
+                fileSizeDisplay.textContent = 'Maksimal 5MB (Format PDF atau DOC/DOCX)';
+                fileDropZone.classList.add('border-red-400', 'bg-red-50/20');
+                return;
+            }
+
+            const allowedExtensions = ['.pdf', '.doc', '.docx'];
+            const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+            if (!allowedExtensions.includes(fileExt)) {
+                if (fileErrorDisplay) {
+                    fileErrorDisplay.textContent = 'Gagal: Hanya diperbolehkan file PDF atau Word (DOC/DOCX).';
+                    fileErrorDisplay.classList.remove('hidden');
+                }
+                fileInput.value = '';
+                fileNameDisplay.textContent = 'Klik atau seret dokumen draf ke sini';
+                fileSizeDisplay.textContent = 'Maksimal 5MB (Format PDF atau DOC/DOCX)';
+                fileDropZone.classList.add('border-red-400', 'bg-red-50/20');
+                return;
+            }
+
+            if (fileErrorDisplay) fileErrorDisplay.classList.add('hidden');
+            fileDropZone.classList.remove('border-red-400', 'bg-red-50/20');
+            fileDropZone.classList.add('border-blue-500', 'bg-blue-50/40');
+            fileNameDisplay.textContent = file.name;
+            const sizeKB = (file.size / 1024).toFixed(1);
+            fileSizeDisplay.textContent = `${sizeKB >= 1024 ? (sizeKB/1024).toFixed(2) + ' MB' : sizeKB + ' KB'} • File siap diunggah`;
+        }
+    }
+});
+
+function openDetailKeluarModal(btn) {
+    const nomor = btn.getAttribute('data-nomor') || '-';
+    const tujuan = btn.getAttribute('data-tujuan') || '-';
+    const perihal = btn.getAttribute('data-perihal') || '-';
+    const tanggal = btn.getAttribute('data-tanggal') || '-';
+    const status = btn.getAttribute('data-status') || 'draft';
+    const catatan = btn.getAttribute('data-catatan') || '';
+    const file = btn.getAttribute('data-file') || 'none';
+
+    document.getElementById('detKeluarNomor').textContent = nomor;
+    document.getElementById('detKeluarTujuan').textContent = tujuan;
+    document.getElementById('detKeluarPerihal').textContent = perihal;
+    document.getElementById('detKeluarTanggal').textContent = tanggal;
+
+    const statusEl = document.getElementById('detKeluarStatus');
+    if (statusEl) {
+        statusEl.textContent = status.toUpperCase();
+        if (status === 'draft') {
+            statusEl.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-600 border border-blue-200 inline-block';
+        } else if (status === 'diajukan') {
+            statusEl.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-600 border border-amber-200 inline-block';
+        } else if (status === 'revisi') {
+            statusEl.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-100 text-violet-600 border border-violet-200 inline-block';
+        } else if (status === 'disetujui') {
+            statusEl.className = 'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-600 border border-emerald-200 inline-block';
+        }
+    }
+    
+    const catatanWrapper = document.getElementById('detKeluarCatatanWrapper');
+    const catatanEl = document.getElementById('detKeluarCatatan');
+    if (catatanWrapper && catatanEl) {
+        if (status === 'revisi' && catatan.trim() !== '') {
+            catatanEl.textContent = catatan;
+            catatanWrapper.classList.remove('hidden');
+        } else {
+            catatanWrapper.classList.add('hidden');
+        }
+    }
+
+    const pdfFrame = document.getElementById('pdfFrameKeluar');
+    const pdfNoFile = document.getElementById('pdfNoFileKeluar');
+    const btnUnduhWrapper = document.getElementById('btnUnduhKeluarWrapper');
+    const btnUnduh = document.getElementById('btnUnduhKeluar');
+
+    if (file !== 'none' && file !== '') {
+        const isPDF = file.toLowerCase().split('?')[0].endsWith('.pdf');
+        if (isPDF) {
+            if (pdfFrame) {
+                pdfFrame.src = file;
+                pdfFrame.classList.remove('hidden');
+            }
+            if (pdfNoFile) pdfNoFile.classList.add('hidden');
+        } else {
+            // Word or other non-previewable formats
+            if (pdfFrame) {
+                pdfFrame.src = '';
+                pdfFrame.classList.add('hidden');
+            }
+            if (pdfNoFile) {
+                pdfNoFile.innerHTML = `
+                    <div class="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-400 flex items-center justify-center mx-auto text-xl shadow-sm border border-blue-500/30">
+                        <i class="fas fa-file-word"></i>
+                    </div>
+                    <p class="text-xs font-bold text-slate-300">Pratinjau tidak tersedia untuk format Word.</p>
+                    <p class="text-[9px] text-slate-500">Silakan unduh dokumen menggunakan tombol di bawah untuk melihat isi draf.</p>
+                `;
+                pdfNoFile.classList.remove('hidden');
+            }
+        }
+        if (btnUnduhWrapper) btnUnduhWrapper.classList.remove('hidden');
+        if (btnUnduh) btnUnduh.href = file;
+    } else {
+        if (pdfFrame) {
+            pdfFrame.src = '';
+            pdfFrame.classList.add('hidden');
+        }
+        if (pdfNoFile) {
+            pdfNoFile.innerHTML = `
+                <div class="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto text-xl shadow-sm border border-slate-700">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <p class="text-xs font-bold text-slate-300">Pratinjau tidak tersedia.</p>
+                <p class="text-[9px] text-slate-500">File mungkin dalam format yang tidak didukung pratinjau browser.</p>
+            `;
+            pdfNoFile.classList.remove('hidden');
+        }
+        if (btnUnduhWrapper) btnUnduhWrapper.classList.add('hidden');
+        if (btnUnduh) btnUnduh.href = '#';
+    }
+
+    const modal = document.getElementById('modalDetailSuratKeluar');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeDetailKeluarFunc() {
+    const modal = document.getElementById('modalDetailSuratKeluar');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+}
+
+function openKonfirmasiAjukan(url) {
+    const modal = document.getElementById('modalKonfirmasiAjukan');
+    const form = document.getElementById('formKonfirmasiAjukan');
+    if (modal && form) {
+        form.action = url;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeKonfirmasiAjukan() {
+    const modal = document.getElementById('modalKonfirmasiAjukan');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+    }
+}
+</script>
+
+<!-- Modal Konfirmasi Ajukan ke Admin -->
+<div id="modalKonfirmasiAjukan" class="fixed inset-0 z-[1060] hidden items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+    <div class="fixed inset-0 bg-gray-950/70 backdrop-blur-sm transition-opacity" onclick="closeKonfirmasiAjukan()"></div>
+    
+    <div class="relative bg-white w-full max-w-sm rounded-3xl shadow-2xl p-8 text-center animate-in zoom-in duration-200 z-10 border border-gray-100">
+        <div class="w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl border-4 border-white shadow-sm">
+            <i class="fas fa-user-shield"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Ajukan ke Admin?</h2>
+        <p class="text-sm text-gray-500 mb-8 px-2">Draf surat ini akan diajukan ke Admin untuk divalidasi. Pastikan data sudah benar.</p>
+        
+        <form id="formKonfirmasiAjukan" method="POST" action="">
+            {% csrf_token %}
+            <div class="flex gap-3">
+                <button type="button" onclick="closeKonfirmasiAjukan()" class="flex-1 py-3 rounded-2xl border border-gray-100 text-gray-400 font-bold hover:bg-gray-50 transition-all active:scale-95">Batal</button>
+                <button type="submit" class="flex-1 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 active:scale-95">
+                    <i class="fas fa-check-circle text-xs"></i> Ya, Ajukan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

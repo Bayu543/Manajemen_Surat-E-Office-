@@ -1,0 +1,74 @@
+<!-- Modal Edit Profil -->
+<div id="modalEditProfil" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" id="backdropEditProfil"></div>
+    <div class="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-user-edit text-blue-600"></i>
+                <span>Edit Profil Staff</span>
+            </h2>
+            <button type="button" id="closeModalEditProfil" class="w-8 h-8 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <form class="p-6 space-y-4 overflow-y-auto" id="formEditProfil" action="{% url 'profil' %}" method="POST">
+            {% csrf_token %}
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Nama Lengkap</label>
+                <input type="text" name="nama_lengkap" id="editProfilNama" value="{{ user.get_full_name|default:user.username }}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all" required>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Email</label>
+                <input type="email" name="email" id="editProfilEmail" value="{{ user.email }}" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all" required>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Nomor Telepon</label>
+                <input type="text" name="telepon" id="editProfilPhone" value="{{ user.profile.phone|default:'' }}" placeholder="Contoh: 081234567890" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Alamat Lengkap</label>
+                <textarea name="alamat" id="editProfilAlamat" rows="2" placeholder="Masukkan alamat lengkap..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none">{{ user.profile.alamat|default:'' }}</textarea>
+            </div>
+            <div class="pt-3 flex items-center justify-end gap-2">
+                <button type="button" id="btnCancelEditProfil" class="px-5 py-2 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition-all text-xs">Batal</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all text-xs">Simpan Perubahan</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Ganti Password -->
+<div id="modalGantiPassword" class="fixed inset-0 z-[1050] hidden items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" id="backdropGantiPassword"></div>
+    <div class="relative bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-key text-blue-600"></i>
+                <span>Ganti Password</span>
+            </h2>
+            <button type="button" id="closeModalGantiPassword" class="w-8 h-8 rounded-xl bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <form class="p-6 space-y-4" id="formGantiPassword">
+            {% csrf_token %}
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Password Lama</label>
+                <input type="password" name="password_lama" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all" placeholder="Masukkan password lama">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Password Baru</label>
+                <input type="password" name="password_baru" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all" placeholder="Minimal 8 karakter">
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block ml-1">Konfirmasi Password Baru</label>
+                <input type="password" name="konfirmasi_password_baru" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-800 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all" placeholder="Ulangi password baru">
+            </div>
+            <div class="pt-3 flex items-center justify-end gap-2">
+                <button type="button" id="btnCancelGantiPassword" class="px-5 py-2 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition-all text-xs">Batal</button>
+                <button type="submit" class="px-5 py-2 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all text-xs">Update Password</button>
+            </div>
+        </form>
+    </div>
+</div>
+

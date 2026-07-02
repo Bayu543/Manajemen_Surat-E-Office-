@@ -1,0 +1,502 @@
+{% extends 'accounts/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Arsip{% endblock %}
+{% block page_title %}Arsip{% endblock %}
+
+{% block extra_css %}
+<!-- Custom Animations -->
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fadeIn {
+        animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    
+    /* Custom Modal Style matching the system modern theme */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1050;
+        background-color: rgba(3, 7, 18, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    .modal-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .modal-container {
+        background-color: white;
+        width: 100%;
+        max-width: 32rem;
+        border-radius: 2rem;
+        box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3);
+        overflow: hidden;
+        border: 1px solid #f1f5f9;
+        transform: scale(0.95);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        display: flex;
+        flex-direction: column;
+        max-height: 85vh;
+    }
+    .modal-overlay.show .modal-container {
+        transform: scale(1);
+    }
+    .modal-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .modal-header h2 {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: #1e293b;
+        letter-spacing: -0.025em;
+    }
+    .modal-close {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        color: #94a3b8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    .modal-close:hover {
+        background-color: #fef2f2;
+        color: #ef4444;
+    }
+    .modal-body-detail {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .modal-body-detail::-webkit-scrollbar {
+        width: 6px;
+    }
+    .modal-body-detail::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .modal-body-detail::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+    .modal-body-detail::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    .detail-section {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .detail-section.highlight {
+        background-color: #eff6ff;
+        border: 1px solid #dbeafe;
+        padding: 1rem 1.25rem;
+        border-radius: 1.25rem;
+    }
+    .detail-label {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+    }
+    .detail-value {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #334155;
+    }
+    .detail-section.highlight .detail-value {
+        font-size: 1rem;
+        font-weight: 900;
+        color: #2563eb;
+    }
+    .detail-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+    .badge-jenis {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-width: 1px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .badge-jenis.masuk {
+        color: #4f46e5;
+        background-color: #eef2ff;
+        border-color: #e0e7ff;
+    }
+    .badge-jenis.keluar {
+        color: #2563eb;
+        background-color: #eff6ff;
+        border-color: #dbeafe;
+    }
+    .badge-status-surat {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-width: 1px;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .badge-status-surat.baru {
+        color: #2563eb;
+        background-color: #eff6ff;
+        border-color: #dbeafe;
+    }
+    .badge-status-surat.draft {
+        color: #4b5563;
+        background-color: #f3f4f6;
+        border-color: #e5e7eb;
+    }
+    .badge-status-surat.diproses, .badge-status-surat.diajukan {
+        color: #d97706;
+        background-color: #fffbeb;
+        border-color: #fef3c7;
+    }
+    .badge-status-surat.selesai, .badge-status-surat.disetujui {
+        color: #059669;
+        background-color: #ecfdf5;
+        border-color: #d1fae5;
+    }
+    .file-attachment {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 1.25rem;
+        color: #475569;
+        font-weight: 700;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    .file-attachment:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+        color: #0f172a;
+    }
+    .file-attachment i {
+        font-size: 1.25rem;
+        color: #ef4444;
+    }
+    .modal-footer {
+        padding: 1.25rem 2rem;
+        background-color: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .btn-close-detail {
+        padding: 0.625rem 1.5rem;
+        background-color: white;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        font-weight: 800;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: 0.75rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .btn-close-detail:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="px-8 pt-2 pb-6 space-y-6 max-w-[1600px] mx-auto animate-fadeIn">
+    
+    <!-- Search & Filter Card -->
+    <div class="bg-white rounded-[2rem] p-6 shadow-xl shadow-gray-500/5 border border-gray-100/80">
+        <!-- Hidden Fields to Sync with original filter JS without modification -->
+        <div class="hidden">
+            <select id="filterJenis">
+                <option value="all">All</option>
+                <option value="masuk">Masuk</option>
+                <option value="keluar">Keluar</option>
+            </select>
+            <select id="filterSuratMasuk">
+                <option value="all">All</option>
+            </select>
+            <select id="filterSuratKeluar">
+                <option value="all">All</option>
+            </select>
+        </div>
+        <!-- Search input field -->
+        <div class="relative w-full mb-4">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                <i class="fas fa-search text-gray-400 text-sm"></i>
+            </span>
+            <input type="text" id="searchInput" class="w-full pl-11 pr-4 py-3 bg-gray-50/50 border border-gray-200/80 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all placeholder-gray-400 font-semibold" placeholder="Cari surat, nomor, pengirim">
+        </div>
+
+        <!-- Filter controls row -->
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <!-- Left Side: Tabs -->
+            <div class="flex items-center bg-gray-100/80 p-1 rounded-2xl border border-gray-200/10 shadow-inner shrink-0">
+                <button id="btnTabAll" type="button" onclick="setJenisTab('all')" class="px-5 py-2 text-xs font-black rounded-xl transition-all bg-white text-gray-800 shadow-sm active-tab">Semua</button>
+                <button id="btnTabMasuk" type="button" onclick="setJenisTab('masuk')" class="px-5 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 rounded-xl transition-all">Surat Masuk</button>
+                <button id="btnTabKeluar" type="button" onclick="setJenisTab('keluar')" class="px-5 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 rounded-xl transition-all">Surat Keluar</button>
+            </div>
+
+            <!-- Right Side: Status & Date pickers -->
+            <div class="flex flex-wrap items-center gap-4">
+                <!-- Dropdown Status -->
+                <select id="filterStatus" class="border border-gray-200 rounded-2xl px-4 py-2 text-xs font-black text-gray-600 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-white">
+                    <option value="all">Semua Status</option>
+                    <option value="baru">Baru</option>
+                    <option value="diproses">Diproses</option>
+                    <option value="selesai">Selesai</option>
+                    <option value="draft">Draft</option>
+                    <option value="diajukan">Diajukan</option>
+                    <option value="disetujui">Disetujui</option>
+                </select>
+
+                <!-- Date Range picker -->
+                <div class="flex items-center gap-2.5 text-xs font-black text-gray-500">
+                    <input type="date" id="filterTanggalDari" class="border border-gray-200 rounded-2xl px-4 py-2 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-white text-gray-600 font-bold" placeholder="dd/mm/yyyy">
+                    <span class="text-gray-400 font-bold uppercase tracking-wider text-[10px]">s/d</span>
+                    <input type="date" id="filterTanggalSampai" class="border border-gray-200 rounded-2xl px-4 py-2 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all bg-white text-gray-600 font-bold" placeholder="dd/mm/yyyy">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Card "Daftar Arsip" -->
+    <div class="bg-transparent lg:bg-white rounded-none lg:rounded-[2.5rem] shadow-none lg:shadow-xl lg:shadow-gray-500/5 border-none lg:border lg:border-gray-100 overflow-hidden">
+        <!-- Card Header -->
+        <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between shrink-0 flex-wrap gap-4 bg-white rounded-t-[2.5rem] lg:rounded-none lg:bg-transparent shadow-sm lg:shadow-none mb-4 lg:mb-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
+                    <i class="fas fa-archive text-blue-600 text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-black text-gray-800">Daftar Arsip</h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Seluruh arsip dokumen digital</p>
+                </div>
+            </div>
+            <!-- Pagination Info Badge -->
+            <span class="px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-50 text-blue-600 border border-blue-100 shadow-sm card-header-badge">
+                Menampilkan {{ surat_list|length }}
+            </span>
+        </div>
+
+        <!-- Table responsive wrapper -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse surat-table block lg:table">
+                <thead class="hidden lg:table-header-group">
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Nomor Surat</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Jenis</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Pengirim / Tujuan</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Perihal</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Tanggal</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider">Status</th>
+                        <th class="px-3 py-3.5 text-xs font-black text-gray-400 uppercase tracking-wider text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 block lg:table-row-group">
+                    {% for s in surat_list %}
+                    <tr data-jenis="{{ s.jenis }}" data-status="{{ s.status }}" data-tanggal="{{ s.tanggal_surat|date:'Y-m-d' }}" data-file-url="{% if s.jenis == 'masuk' %}{% if s.file_surat %}{{ s.file_surat.url }}{% endif %}{% else %}{% if s.file_draf %}{{ s.file_draf.url }}{% endif %}{% endif %}" class="hover:bg-gray-50/50 transition-colors duration-150 group block lg:table-row bg-white border border-gray-100 lg:border-none rounded-[2rem] lg:rounded-none p-5 mb-4 lg:mb-0 shadow-sm lg:shadow-none flex flex-col lg:flex-row gap-3 lg:gap-0 relative">
+                        <!-- Nomor Surat -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell max-w-none lg:max-w-[150px] border-none lg:border-b lg:border-gray-100">
+                            <span class="text-sm font-black text-blue-600 hover:text-blue-800 cursor-pointer hover:underline block truncate w-3/4 lg:w-auto" title="{{ s.nomor_surat }}">{{ s.nomor_surat }}</span>
+                        </td>
+                        
+                        <!-- Jenis Surat Badge -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Jenis</span>
+                                <div>
+                                    <span class="badge-jenis hidden">{{ s.jenis|capfirst }}</span>
+                                    {% if s.jenis == 'masuk' %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-indigo-600 bg-indigo-50 border border-indigo-100/50 shadow-sm">
+                                        <i class="fas fa-arrow-down text-[10px] -rotate-45"></i>
+                                        Masuk
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100/50 shadow-sm">
+                                        <i class="fas fa-arrow-up text-[10px] rotate-45"></i>
+                                        Keluar
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <!-- Pengirim / Tujuan -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell max-w-none lg:max-w-[155px] border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Kontak</span>
+                                <span class="text-sm font-bold text-gray-700 leading-snug block truncate" title="{{ s.pengirim|default:s.tujuan }}">{{ s.pengirim|default:s.tujuan }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- Perihal -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell max-w-none lg:max-w-[180px] border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Perihal</span>
+                                <span class="text-sm font-semibold text-gray-600 leading-relaxed block truncate" title="{{ s.perihal }}">{{ s.perihal }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- Tanggal -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell whitespace-normal lg:whitespace-nowrap border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:block">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Tanggal</span>
+                                <span class="text-xs font-bold text-gray-500">{{ s.tanggal_surat|date:"d M Y" }}</span>
+                            </div>
+                        </td>
+                        
+                        <!-- Status Badge -->
+                        <td class="absolute top-5 right-5 block lg:relative lg:top-0 lg:right-0 lg:table-cell text-center border-none lg:border-b lg:border-gray-100">
+                            <span class="badge-status-surat {{ s.status|lower }} hidden">{{ s.status }}</span>
+                            {% if s.status|lower == 'baru' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-blue-600 bg-blue-50 border border-blue-100/50 shadow-sm">Baru</span>
+                            {% elif s.status|lower == 'diproses' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-amber-600 bg-amber-50 border border-amber-100/50 shadow-sm">Diproses</span>
+                            {% elif s.status|lower == 'selesai' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-100/50 shadow-sm">Selesai</span>
+                            {% elif s.status|lower == 'draft' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-gray-600 bg-gray-50 border border-gray-100/50 shadow-sm">Draft</span>
+                            {% elif s.status|lower == 'diajukan' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-orange-600 bg-orange-50 border border-orange-100/50 shadow-sm">Diajukan</span>
+                            {% elif s.status|lower == 'disetujui' %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-emerald-600 bg-emerald-50 border border-emerald-100/50 shadow-sm">Disetujui</span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider text-gray-600 bg-gray-50 border border-gray-100/50 shadow-sm">{{ s.get_status_display }}</span>
+                            {% endif %}
+                        </td>
+                        
+                        <!-- Aksi Buttons -->
+                        <td class="px-0 lg:px-3 py-0 lg:py-3.5 block lg:table-cell border-none lg:border-b lg:border-gray-100">
+                            <div class="flex items-center lg:justify-center gap-2">
+                                <span class="lg:hidden text-[10px] font-black text-gray-400 uppercase w-24 shrink-0 tracking-wider">Aksi</span>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 bg-gray-50 hover:bg-blue-600 hover:text-white transition-all shadow-sm shrink-0" title="Lihat Detail">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </button>
+                                    <button type="button" class="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 bg-gray-50 hover:bg-emerald-600 hover:text-white transition-all shadow-sm shrink-0" title="Unduh Dokumen">
+                                        <i class="fas fa-download text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="block lg:table-row">
+                        <td colspan="7" class="px-8 py-16 text-center block lg:table-cell">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-inbox text-2xl text-gray-300"></i>
+                                </div>
+                                <p class="text-sm text-gray-400 font-semibold uppercase tracking-wider">Belum ada data dokumen terarsip.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Table Footer Pagination Info -->
+        <div class="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between text-xs font-black text-gray-400 uppercase tracking-widest bg-white lg:bg-transparent rounded-b-[2.5rem] lg:rounded-none">
+            <span class="pagination-info">Menampilkan {{ surat_list|length }} dari {{ surat_list|length }} arsip</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'accounts/js/arsip.js' %}?v=66"></script>
+<script>
+    // Tab filtering helper
+    function setJenisTab(jenis) {
+        // Update hidden select
+        const selectJenis = document.getElementById('filterJenis');
+        selectJenis.value = jenis;
+
+        // Reset active state for all tab buttons
+        const tabs = ['btnTabAll', 'btnTabMasuk', 'btnTabKeluar'];
+        tabs.forEach(tabId => {
+            const btn = document.getElementById(tabId);
+            if (btn) {
+                btn.classList.remove('bg-white', 'text-gray-800', 'shadow-sm', 'active-tab');
+                btn.classList.add('text-gray-500', 'hover:text-gray-800');
+            }
+        });
+
+        // Set active class to selected button
+        const activeBtn = document.getElementById('btnTab' + (jenis === 'all' ? 'All' : jenis.charAt(0).toUpperCase() + jenis.slice(1)));
+        if (activeBtn) {
+            activeBtn.classList.remove('text-gray-500', 'hover:text-gray-800');
+            activeBtn.classList.add('bg-white', 'text-gray-800', 'shadow-sm', 'active-tab');
+        }
+
+        // Apply filters
+        applyFilters();
+    }
+    
+    // Override standard updateCount from static js to also support card-header-badge element
+    const originalUpdateCount = window.updateCount;
+    window.updateCount = function(count) {
+        const totalRows = document.querySelectorAll('.surat-table tbody tr').length;
+        const visibleCount = count !== undefined ? count : totalRows;
+        
+        // Update the card-header-badge as well
+        const headerBadge = document.querySelector('.card-header-badge');
+        if (headerBadge) {
+            headerBadge.textContent = `Menampilkan ${visibleCount}`;
+        }
+        
+        const paginationInfo = document.querySelector('.pagination-info');
+        if (paginationInfo) {
+            paginationInfo.textContent = `Menampilkan ${visibleCount} dari ${totalRows} arsip`;
+        }
+    }
+</script>
+{% endblock %}

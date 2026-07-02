@@ -1,0 +1,425 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - E-Office Sistem Manajemen Surat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'accounts/css/login.css' %}?v=1.1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: {
+                preflight: false, // Turn off preflight reset to preserve existing custom login styles
+            }
+        }
+    </script>
+    <style>
+        #modalLupaPassword { display: none; }
+        #modalLupaPassword.show { display: flex !important; }
+        
+        /* Premium custom typography for modal, excluding FontAwesome icons */
+        #modalLupaPassword *:not(i):not([class*="fa-"]) {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+        }
+        
+        .form-group-modal label {
+            letter-spacing: 0.05em;
+        }
+        
+        /* Form inputs premium styling */
+        #modalLupaPassword input {
+            border: 2px solid #E5E7EB !important;
+            background: #F9FAFB !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        #modalLupaPassword input:focus {
+            border-color: #2563EB !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+        }
+        
+        /* Modal buttons premium hover effects */
+        #btnBatalLupa {
+            border: 2px solid #E5E7EB !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        #btnBatalLupa:hover {
+            background-color: #F3F4F6 !important;
+            border-color: #D1D5DB !important;
+            color: #1F2937 !important;
+            transform: translateY(-1px);
+        }
+        #btnBatalLupa:active {
+            transform: translateY(0);
+        }
+        
+        #btnKirimLupa {
+            background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%) !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        #btnKirimLupa:hover {
+            background: linear-gradient(135deg, #1D4ED8 0%, #1D4ED8 100%) !important;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3) !important;
+            transform: translateY(-1px);
+        }
+        #btnKirimLupa:active {
+            transform: translateY(0);
+        }
+
+        .animate-in {
+            animation-duration: 0.25s;
+            animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation-fill-mode: forwards;
+        }
+        
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        #modalLupaPassword.show .relative {
+            animation-name: zoomIn;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <div class="branding">
+                <div class="logo-container">
+                    <img src="{% static 'accounts/images/logo.png' %}" alt="Logo Bekasi" class="logo-img">
+                </div>
+                <h1>E-Office</h1>
+                <p class="subtitle">Sistem Manajemen Surat Elektronik & Arsip Digital</p>
+                <p class="institution">Kabupaten Bekasi</p>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <div class="login-card">
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="masuk">
+                        <i class="fas fa-sign-in-alt"></i> Masuk
+                    </button>
+                    <button class="tab-btn" data-tab="daftar">
+                        <i class="fas fa-user-plus"></i> Daftar
+                    </button>
+                </div>
+
+                <!-- Tab Content: Masuk -->
+                <div class="tab-content active" id="masuk">
+                    <div class="welcome-text">
+                        <h2>Selamat Datang Kembali!</h2>
+                        <p>Silakan masuk dengan akun Anda untuk melanjutkan</p>
+                    </div>
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                                <i class="fas fa-{% if message.tags == 'error' %}exclamation-circle{% else %}check-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" class="login-form" id="loginForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="username">
+                                <i class="fas fa-envelope"></i> Email atau Username
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input 
+                                    type="text" 
+                                    id="username" 
+                                    name="username" 
+                                    placeholder="Masukkan email atau username"
+                                    required
+                                    autocomplete="username"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="password">
+                                <i class="fas fa-lock"></i> Password
+                            </label>
+                            <div class="input-wrapper password-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    name="password" 
+                                    placeholder="Masukkan password Anda"
+                                    required
+                                    autocomplete="current-password"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePassword('password', 'toggleIcon1')" title="Tampilkan/Sembunyikan Password">
+                                    <i class="fa-solid fa-eye" id="toggleIcon1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+
+
+                        <div class="form-options">
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="remember_me" id="remember_me">
+                                <span class="checkmark"></span>
+                                Ingat saya
+                            </label>
+                            <a href="#" class="forgot-password" onclick="openLupaPasswordModal(); return false;">
+                                <i class="fas fa-question-circle"></i> Lupa Password?
+                            </a>
+                        </div>
+
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Masuk Ke Sistem
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                        <div class="register-link">
+                            Belum punya akun? <a href="#" onclick="switchTab('daftar'); return false;">Daftar sekarang</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab Content: Daftar -->
+                <div class="tab-content" id="daftar">
+                    <div class="welcome-text">
+                        <h2>Buat Akun Baru</h2>
+                        <p>Daftar untuk mengakses sistem E-Office</p>
+                    </div>
+
+                    <div class="info-box">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Pendaftaran untuk Staff</strong>
+                            <p>Akun Admin hanya dapat dibuat oleh Administrator sistem. Hubungi admin instansi Anda untuk akses lebih tinggi.</p>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{% url 'register' %}" class="register-form" id="registerForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="reg_fullname">
+                                <i class="fas fa-id-card"></i> Nama Lengkap
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-user"></i>
+                                <input 
+                                    type="text" 
+                                    id="reg_fullname" 
+                                    name="fullname" 
+                                    placeholder="Contoh: Budi Santoso"
+                                    required
+                                    autocomplete="name"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reg_email">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-at"></i>
+                                <input 
+                                    type="email" 
+                                    id="reg_email" 
+                                    name="email" 
+                                    placeholder="email@instalasi.go.id"
+                                    required
+                                    autocomplete="email"
+                                >
+                            </div>
+                            <small class="helper-text">
+                                <i class="fas fa-info-circle"></i> Gunakan email yang valid, akan digunakan untuk login
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reg_password">
+                                <i class="fas fa-key"></i> Password
+                            </label>
+                            <div class="input-wrapper password-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input 
+                                    type="password" 
+                                    id="reg_password" 
+                                    name="password" 
+                                    placeholder="Minimal 8 karakter"
+                                    required
+                                    minlength="8"
+                                    autocomplete="new-password"
+                                >
+                                <button type="button" class="toggle-password" onclick="togglePassword('reg_password', 'toggleIcon2')" title="Tampilkan/Sembunyikan Password">
+                                    <i class="fa-solid fa-eye" id="toggleIcon2"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <small class="helper-text">
+                                <i class="fas fa-shield-alt"></i> Minimal 8 karakter, kombinasi huruf dan angka lebih aman
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="role">
+                                <i class="fas fa-user-tag"></i> Role
+                            </label>
+                            <div class="role-selector">
+                                <div class="role-option">
+                                    <input type="radio" id="role_staff" name="role" value="staff" checked>
+                                    <label for="role_staff">
+                                        <i class="fas fa-user-tie"></i>
+                                        <div class="role-info">
+                                            <span class="role-title">Staff</span>
+                                            <span class="role-desc">Akses terbatas untuk staff</span>
+                                        </div>
+                                    </label>
+                                    <span class="role-badge">Default</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reg_captcha">
+                                <i class="fas fa-shield-alt"></i> Verifikasi Keamanan
+                            </label>
+                            <div class="captcha-wrapper" data-captcha-url="{% url 'get_captcha_api' %}">
+                                <div class="captcha-question">
+                                    <i class="fas fa-calculator"></i>
+                                    <span id="regCaptchaQuestion">Memuat...</span>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    id="reg_captcha" 
+                                    name="captcha_answer"
+                                    placeholder="Jawaban"
+                                    required
+                                    autocomplete="off"
+                                >
+                                <button type="button" class="refresh-captcha" onclick="generateRegisterCaptcha()" title="Refresh Captcha">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <input type="hidden" name="captcha_token" id="regCaptchaToken">
+                            <small class="helper-text">
+                                <i class="fas fa-calculator"></i> Selesaikan operasi matematika untuk verifikasi
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn-login">
+                            <i class="fas fa-user-plus"></i>
+                            Buat Akun Sekarang
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+
+                        <div class="register-link">
+                            Sudah punya akun? <a href="#" onclick="switchTab('masuk'); return false;">Masuk di sini</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    <!-- Modal Lupa Password -->
+    <div id="modalLupaPassword" class="fixed inset-0 z-[9999] hidden items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+        
+        <!-- Content -->
+        <div class="relative bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in zoom-in duration-200">
+            <!-- Header -->
+            <div class="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 m-0">Lupa Password?</h2>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1 mb-0">Reset Sandi Akun E-Office</p>
+                </div>
+                <button id="closeLupaPassword" class="w-10 h-10 rounded-xl bg-gray-50 border-none text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all flex items-center justify-center cursor-pointer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Body / Form -->
+            <form id="formLupaPassword" class="p-8 space-y-6 m-0">
+                {% csrf_token %}
+                <div id="lupaPasswordStep1" class="space-y-6">
+                    <div class="form-group-modal">
+                        <label for="lupa_username" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            <i class="fas fa-user-circle mr-1"></i> Email atau Username
+                        </label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="lupa_username" name="username" required placeholder="Masukkan email atau username terdaftar"
+                                class="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-400">
+                        </div>
+                    </div>
+
+                    <div class="form-group-modal">
+                        <label for="lupa_captcha" class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                            <i class="fas fa-shield-alt mr-1"></i> Verifikasi Keamanan
+                        </label>
+                        <div class="flex gap-3 items-center">
+                            <div class="flex items-center gap-2 bg-blue-50/50 border border-blue-100/60 px-4 py-3 rounded-2xl text-blue-600 font-bold text-sm shrink-0">
+                                <i class="fas fa-calculator"></i>
+                                <span id="lupaCaptchaQuestion">Memuat...</span>
+                            </div>
+                            <input type="text" id="lupa_captcha" name="captcha_answer" required placeholder="Jawaban" autocomplete="off"
+                                class="flex-1 px-4 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all text-center font-bold">
+                            <button type="button" onclick="generateLupaCaptcha()" class="w-12 h-12 rounded-2xl bg-gray-50 border-none text-gray-500 hover:bg-blue-50 hover:text-blue-500 transition-all flex items-center justify-center shrink-0 cursor-pointer">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" name="captcha_token" id="lupaCaptchaToken">
+                    </div>
+
+                    <div class="flex gap-3 pt-2">
+                        <button type="button" id="btnBatalLupa" class="flex-1 py-3.5 rounded-2xl border border-gray-100 bg-white text-gray-400 font-bold hover:bg-gray-50 transition-all text-sm cursor-pointer">Batal</button>
+                        <button type="submit" id="btnKirimLupa" class="flex-1 py-3.5 rounded-2xl bg-blue-600 border-none hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-100 transition-all text-sm cursor-pointer">Kirim</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Success Message -->
+                <div id="lupaPasswordStep2" class="hidden text-center py-4 space-y-6">
+                    <div class="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-3xl">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-lg font-bold text-gray-800 m-0">Password Berhasil Direset!</h3>
+                        <p class="text-sm text-gray-500 px-4 m-0 leading-relaxed">Sandi akun Anda telah dikembalikan ke sandi default instansi.</p>
+                    </div>
+                    
+                    <div class="bg-emerald-50/50 border border-emerald-100 p-5 rounded-2xl">
+                        <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block mb-1">Password Baru Anda</span>
+                        <div class="text-2xl font-black text-emerald-700 select-all font-mono tracking-wider">eoffice123</div>
+                    </div>
+
+                    <p class="text-[11px] text-amber-500 font-semibold px-4 m-0">
+                        <i class="fas fa-exclamation-triangle mr-1"></i> Segera ubah password default Anda pada menu profil demi keamanan.
+                    </p>
+
+                    <div class="pt-2">
+                        <button type="button" id="btnSelesaiLupa" class="w-full py-3.5 rounded-2xl bg-emerald-600 border-none hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-100 transition-all text-sm cursor-pointer">Tutup & Login</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{% static 'accounts/js/login.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Surat Keluar - {{ surat.nomor_surat }}</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 2.5cm 2.5cm 2.5cm 2.5cm;
+        }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        /* Kop Surat */
+        .kop-surat {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .kop-surat h1 {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 0;
+            color: #064E3B; /* Emerald Green Dark */
+            text-transform: uppercase;
+        }
+        
+        .kop-surat h2 {
+            font-size: 14pt;
+            font-weight: bold;
+            margin: 5px 0;
+            color: #047857; /* Emerald Green */
+        }
+        
+        .kop-surat p {
+            font-size: 10pt;
+            margin: 0;
+            color: #333;
+        }
+        
+        /* Garis Pemisah Kop */
+        .garis-kop {
+            border-top: 3px solid #064E3B;
+            border-bottom: 1px solid #064E3B;
+            height: 2px;
+            margin-top: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* Header Surat (Nomor, Lampiran, Perihal, Tujuan) */
+        .header-surat {
+            width: 100%;
+            margin-bottom: 30px;
+        }
+        
+        .header-surat table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .header-surat td {
+            vertical-align: top;
+            padding: 2px 0;
+        }
+
+        .label {
+            width: 80px;
+        }
+        .colon {
+            width: 15px;
+        }
+        
+        .tujuan-surat {
+            margin-top: 20px;
+        }
+
+        /* Isi Surat */
+        .isi-surat {
+            text-align: justify;
+            margin-bottom: 40px;
+            min-height: 300px;
+        }
+
+        /* Footer / Tanda Tangan */
+        .footer-surat {
+            width: 100%;
+            margin-top: 50px;
+        }
+        
+        .ttd-box {
+            width: 250px;
+            float: right;
+            text-align: center;
+        }
+        
+        .ttd-box p {
+            margin: 0;
+        }
+        
+        .ttd-space {
+            height: 80px;
+        }
+        
+        .ttd-name {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        
+        /* Clearfix */
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Kop Surat -->
+    <div class="kop-surat">
+        <h1>KEMENTERIAN TEKNOLOGI INFORMASI</h1>
+        <h2>DIREKTORAT JENDERAL APLIKASI INFORMATIKA</h2>
+        <p>Jalan Merdeka Barat No. 17, Jakarta Pusat 10110</p>
+        <p>Telepon: (021) 1234567, Email: info@kominfo.go.id, Website: www.kominfo.go.id</p>
+    </div>
+    
+    <div class="garis-kop"></div>
+
+    <!-- Header Surat -->
+    <div class="header-surat clearfix">
+        <!-- Bagian Kiri (Nomor, Perihal) -->
+        <div style="float: left; width: 60%;">
+            <table>
+                <tr>
+                    <td class="label">Nomor</td>
+                    <td class="colon">:</td>
+                    <td>{{ surat.nomor_surat }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Sifat</td>
+                    <td class="colon">:</td>
+                    <td>Biasa</td>
+                </tr>
+                <tr>
+                    <td class="label">Lampiran</td>
+                    <td class="colon">:</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td class="label">Perihal</td>
+                    <td class="colon">:</td>
+                    <td><strong>{{ surat.perihal }}</strong></td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Bagian Kanan (Tanggal) -->
+        <div style="float: right; width: 35%; text-align: right;">
+            Jakarta, {{ surat.tanggal_dibuat|date:"d F Y" }}
+        </div>
+    </div>
+    
+    <!-- Tujuan -->
+    <div class="tujuan-surat">
+        <p>Yth. <strong>{{ surat.tujuan }}</strong><br>
+        di Tempat</p>
+    </div>
+
+    <!-- Isi Surat -->
+    <div class="isi-surat">
+        <!-- linebreaksbr agar \n dari TextField berubah jadi <br> -->
+        <p>{{ surat.isi_surat|linebreaksbr }}</p>
+    </div>
+
+    <!-- Tanda Tangan -->
+    <div class="footer-surat clearfix">
+        <div class="ttd-box">
+            <p>Kepala Departemen {{ surat.get_departemen_display }},</p>
+            <div class="ttd-space"></div>
+            <p class="ttd-name">Dr. Budi Santoso, M.Kom.</p>
+            <p>NIP. 19800101 200501 1 001</p>
+        </div>
+    </div>
+
+</body>
+</html>
