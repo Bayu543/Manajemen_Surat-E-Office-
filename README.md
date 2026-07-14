@@ -1,6 +1,6 @@
 # 📧 E-Office - Sistem Manajemen Surat
 
-Aplikasi web untuk mengelola surat masuk, surat keluar, disposisi, dan arsip surat secara digital.
+Aplikasi web untuk mengelola surat masuk, surat keluar, disposisi, dan arsip surat secara digital. Proyek ini dibangun menggunakan bahasa pemrograman **Python** dengan framework **Django**.
 
 ## 🚀 Cara Menjalankan Proyek
 
@@ -35,7 +35,8 @@ Server akan berjalan di: **http://127.0.0.1:8000**
 
 ## 🛠️ Teknologi yang Digunakan
 
-- **Backend**: Django 5.1.4
+- **Bahasa Pemrograman**: Python
+- **Framework Backend**: Django 5.1.4
 - **Database**: SQLite
 - **Frontend**: HTML, CSS, JavaScript
 - **Icons**: Font Awesome 6.4.0
@@ -72,6 +73,22 @@ eoffice/
 - ✅ Profil User (Edit profil, upload foto)
 - ✅ Notifikasi
 - ✅ Responsive Design
+
+## 🖼️ Tampilan Antarmuka (Screenshots)
+
+*(Silakan tambahkan file screenshot ke dalam folder `screenshots/` dan sesuaikan nama filenya di bawah ini)*
+
+### Halaman Login
+![Halaman Login](screenshots/login.png)
+
+### Dashboard Admin
+![Dashboard Admin](screenshots/dashboard.png)
+
+### Manajemen Surat Masuk
+![Surat Masuk](screenshots/surat-masuk.png)
+
+### Disposisi Surat
+![Disposisi](screenshots/disposisi.png)
 
 ## 🔧 Troubleshooting
 
