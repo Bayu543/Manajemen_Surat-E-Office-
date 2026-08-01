@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!disposisiId) return;
 
         // Fetch data from server
-        fetch(`/accounts/disposisi/${disposisiId}/detail/`)
+        fetch(`/disposisi/${disposisiId}/detail/`)
             .then(response => response.json())
             .then(res => {
                 if (!res.success) {
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(formBuatDisposisi);
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
-            fetch('/accounts/disposisi/', {
+            fetch('/disposisi/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -421,7 +421,7 @@ window.openBatalModal = function(id, nomor) {
     if (nomorEl) nomorEl.textContent = nomor;
     
     const formEl = document.getElementById('formBatalDisposisi');
-    if (formEl) formEl.action = `/accounts/disposisi/${id}/batal/`;
+    if (formEl) formEl.action = `/disposisi/${id}/batal/`;
     
     modal.classList.remove('hidden');
     modal.classList.add('flex', 'show');

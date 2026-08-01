@@ -28,12 +28,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nip', models.CharField(blank=True, max_length=20, verbose_name='NIP')),
-                ('jabatan', models.CharField(blank=True, max_length=100, verbose_name='Jabatan')),
-                ('phone', models.CharField(blank=True, max_length=20, verbose_name='No. Telepon')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('nip', models.CharField(blank=True,
+                 max_length=20, verbose_name='NIP')),
+                ('jabatan', models.CharField(blank=True,
+                 max_length=100, verbose_name='Jabatan')),
+                ('phone', models.CharField(blank=True,
+                 max_length=20, verbose_name='No. Telepon')),
                 ('alamat', models.TextField(blank=True, verbose_name='Alamat')),
-                ('foto_profil', models.ImageField(blank=True, null=True, upload_to='profile_photos/', verbose_name='Foto Profil')),
+                ('foto_profil', models.ImageField(blank=True, null=True,
+                 upload_to='profile_photos/', verbose_name='Foto Profil')),
                 ('user', models.OneToOneField(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='profile',
@@ -94,7 +99,8 @@ class Migration(migrations.Migration):
             model_name='suratmasuk',
             name='status',
             field=models.CharField(
-                choices=[('baru', 'Baru'), ('diproses', 'Diproses'), ('selesai', 'Selesai')],
+                choices=[('baru', 'Baru'), ('diproses', 'Diproses'),
+                         ('selesai', 'Selesai')],
                 default='baru',
                 help_text='Status pemrosesan surat',
                 max_length=20,
@@ -115,7 +121,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratmasuk',
             name='dibuat_pada',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='Dibuat Pada'),
+            field=models.DateTimeField(
+                auto_now_add=True, verbose_name='Dibuat Pada'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
@@ -133,6 +140,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratmasuk',
             name='diupdate_pada',
-            field=models.DateTimeField(auto_now=True, verbose_name='Diupdate Pada'),
+            field=models.DateTimeField(
+                auto_now=True, verbose_name='Diupdate Pada'),
         ),
     ]

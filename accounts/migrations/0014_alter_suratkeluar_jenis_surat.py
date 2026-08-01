@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratkeluar',
             name='jenis_surat',
-            field=models.CharField(blank=True, max_length=100, null=True, verbose_name='Klasifikasi'),
+            field=models.CharField(
+                blank=True, max_length=100, null=True, verbose_name='Klasifikasi'),
         ),
     ]

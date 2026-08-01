@@ -13,16 +13,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='suratkeluar',
             name='file_pdf_final',
-            field=models.FileField(blank=True, help_text='File PDF hasil generate otomatis', null=True, upload_to='surat_keluar_pdf/', verbose_name='File PDF Final'),
+            field=models.FileField(blank=True, help_text='File PDF hasil generate otomatis',
+                                   null=True, upload_to='surat_keluar_pdf/', verbose_name='File PDF Final'),
         ),
         migrations.AddField(
             model_name='suratkeluar',
             name='isi_surat',
-            field=models.TextField(blank=True, help_text='Isi / body teks surat', null=True, verbose_name='Isi Surat'),
+            field=models.TextField(
+                blank=True, help_text='Isi / body teks surat', null=True, verbose_name='Isi Surat'),
         ),
         migrations.AlterField(
             model_name='suratkeluar',
             name='file_draf',
-            field=models.FileField(blank=True, help_text='Upload file draf lampiran (opsional jika generate PDF)', null=True, upload_to='surat_keluar_draf/', verbose_name='File Draf'),
+            field=models.FileField(blank=True, help_text='Upload file draf lampiran (opsional jika generate PDF)',
+                                   null=True, upload_to='surat_keluar_draf/', verbose_name='File Draf'),
         ),
     ]

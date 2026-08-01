@@ -63,10 +63,15 @@
                 </div>
 
                 <!-- Tanggal Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-2">
                         <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Surat <span class="text-red-500">*</span></label>
                         <input type="date" name="tanggal_surat" id="tanggalSurat" required
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tenggat Waktu</label>
+                        <input type="date" name="tenggat_waktu" id="tenggatWaktu"
                             class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white transition-all">
                     </div>
                     <div class="space-y-2">
@@ -262,12 +267,19 @@
                 {% csrf_token %}
                 <input type="hidden" id="editSuratId" name="id">
 
-                <!-- Nomor Surat & Status -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Nomor Surat, Sifat & Status -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Nomor Surat <span class="text-red-500">*</span></label>
                         <input type="text" name="nomor_surat" id="editNomorSurat" placeholder="Contoh: 001/SM/2026" required
                             class="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all font-bold text-blue-600">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Sifat Surat</label>
+                        <select name="sifat_surat" id="editSifatSurat" class="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all font-bold">
+                            <option value="biasa">Biasa</option>
+                            <option value="segera">Segera</option>
+                        </select>
                     </div>
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Status Surat <span class="text-red-500">*</span></label>
@@ -294,10 +306,15 @@
                 </div>
 
                 <!-- Tanggal Row -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tanggal Surat <span class="text-red-500">*</span></label>
                         <input type="date" name="tanggal_surat" id="editTanggalSurat" required
+                            class="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all font-semibold">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Tenggat Waktu</label>
+                        <input type="date" name="tenggat_waktu" id="editTenggatWaktu"
                             class="w-full px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all font-semibold">
                     </div>
                     <div class="space-y-1">

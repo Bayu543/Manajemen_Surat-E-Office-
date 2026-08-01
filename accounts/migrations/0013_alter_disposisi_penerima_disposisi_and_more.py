@@ -16,11 +16,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='disposisi',
             name='penerima_disposisi',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='disposisi_diterima', to=settings.AUTH_USER_MODEL, verbose_name='Penerima Disposisi'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='disposisi_diterima', to=settings.AUTH_USER_MODEL, verbose_name='Penerima Disposisi'),
         ),
         migrations.AlterField(
             model_name='suratkeluar',
             name='pembuat',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='draft_surat_keluar', to=settings.AUTH_USER_MODEL, verbose_name='Pembuat'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='draft_surat_keluar', to=settings.AUTH_USER_MODEL, verbose_name='Pembuat'),
         ),
     ]

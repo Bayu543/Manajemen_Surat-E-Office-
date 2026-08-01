@@ -326,6 +326,7 @@
                                     data-id="{{ s.id }}" data-nomor="{{ s.nomor_surat }}" 
                                     data-pengirim="{{ s.pengirim }}" data-perihal="{{ s.perihal }}" 
                                     data-tanggal="{{ s.tanggal_surat|date:'Y-m-d' }}" data-status="{{ s.status }}"
+                                    data-sifat="{{ s.prioritas }}" data-tenggat="{{ s.tenggat_waktu|date:'Y-m-d' }}"
                                     data-ditugaskan="{% if s.ditugaskan_ke %}{{ s.ditugaskan_ke.id }}{% endif %}">
                                     <i class="fas fa-edit text-xs"></i>
                                 </button>

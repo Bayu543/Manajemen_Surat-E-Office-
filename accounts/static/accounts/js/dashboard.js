@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const res = await fetch(`/accounts/api/dashboard-stats/?range=${range}`);
+            const res = await fetch(`/api/dashboard-stats/?range=${range}`);
             const data = await res.json();
             
             if (!data.success) {
@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileBtn = document.getElementById('userProfileBtn');
     if (profileBtn) {
         profileBtn.addEventListener('click', () => {
-            window.location.href = '/accounts/profil/';
+            window.location.href = '/profil/';
         });
     }
 

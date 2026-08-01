@@ -13,11 +13,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disposisi',
             name='tanggal_dibaca',
-            field=models.DateTimeField(blank=True, help_text='Timestamp saat staff pertama kali membuka surat', null=True, verbose_name='Tanggal Dibaca'),
+            field=models.DateTimeField(
+                blank=True, help_text='Timestamp saat staff pertama kali membuka surat', null=True, verbose_name='Tanggal Dibaca'),
         ),
         migrations.AlterField(
             model_name='disposisi',
             name='status',
-            field=models.CharField(choices=[('baru', 'Baru'), ('dibaca', 'Dibaca'), ('diproses', 'Diproses'), ('selesai', 'Selesai')], default='baru', max_length=20, verbose_name='Status'),
+            field=models.CharField(choices=[('baru', 'Baru'), ('dibaca', 'Dibaca'), ('diproses', 'Diproses'), (
+                'selesai', 'Selesai')], default='baru', max_length=20, verbose_name='Status'),
         ),
     ]

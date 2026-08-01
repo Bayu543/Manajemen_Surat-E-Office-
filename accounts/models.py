@@ -10,17 +10,23 @@ from .utils import get_roman_month
 # Bisa ditambahkan custom model di sini jika diperlukan
 
 # Contoh custom model untuk profile user:
+
+
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='profile')
     nip = models.CharField(max_length=20, blank=True, verbose_name='NIP')
-    jabatan = models.CharField(max_length=100, blank=True, verbose_name='Instansi')
-    phone = models.CharField(max_length=20, blank=True, verbose_name='No. Telepon')
+    jabatan = models.CharField(
+        max_length=100, blank=True, verbose_name='Instansi')
+    phone = models.CharField(max_length=20, blank=True,
+                             verbose_name='No. Telepon')
     alamat = models.TextField(blank=True, verbose_name='Alamat')
-    foto_profil = models.ImageField(upload_to='profile_photos/', blank=True, null=True, verbose_name='Foto Profil')
-    
+    foto_profil = models.ImageField(
+        upload_to='profile_photos/', blank=True, null=True, verbose_name='Foto Profil')
+
     def __str__(self):
         return f"{self.user.username} Profile"
-    
+
     class Meta:
         verbose_name = 'Profil User'
         verbose_name_plural = 'Profil User'
@@ -57,49 +63,49 @@ class SuratMasuk(models.Model):
         ('biasa', 'Biasa'),
         ('segera', 'Segera'),
     ]
-    
+
     prioritas = models.CharField(
         max_length=20,
         choices=PRIORITAS_CHOICES,
         default='biasa',
         verbose_name='Prioritas'
     )
-    
+
     tenggat_waktu = models.DateField(
         null=True,
         blank=True,
         verbose_name='Tenggat Waktu'
     )
-    
+
     nomor_surat = models.CharField(
         max_length=100,
         unique=True,
         verbose_name='Nomor Surat',
         help_text='Nomor surat resmi (contoh: 001/SM/IV/2026)'
     )
-    
+
     pengirim = models.CharField(
         max_length=200,
         verbose_name='Pengirim',
         help_text='Nama instansi atau organisasi pengirim'
     )
-    
+
     perihal = models.TextField(
         verbose_name='Perihal',
         help_text='Perihal atau subjek surat'
     )
-    
+
     tanggal_surat = models.DateField(
         verbose_name='Tanggal Surat',
         help_text='Tanggal yang tertera pada surat'
     )
-    
+
     tanggal_diterima = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Tanggal Diterima',
         help_text='Tanggal surat diterima di sistem'
     )
-    
+
     file_surat = models.FileField(
         upload_to='surat_masuk/',
         blank=True,
@@ -107,7 +113,7 @@ class SuratMasuk(models.Model):
         verbose_name='File Surat',
         help_text='Upload file surat (PDF, DOCX, atau gambar)'
     )
-    
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -115,7 +121,7 @@ class SuratMasuk(models.Model):
         verbose_name='Status',
         help_text='Status pemrosesan surat'
     )
-    
+
     ditugaskan_ke = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -125,14 +131,14 @@ class SuratMasuk(models.Model):
         verbose_name='Ditugaskan Ke',
         help_text='Staff yang ditugaskan untuk menangani surat ini'
     )
-    
+
     catatan = models.TextField(
         blank=True,
         null=True,
         verbose_name='Catatan',
         help_text='Catatan tambahan terkait surat'
     )
-    
+
     dibuat_oleh = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -140,17 +146,17 @@ class SuratMasuk(models.Model):
         related_name='surat_masuk_dibuat',
         verbose_name='Dibuat Oleh'
     )
-    
+
     dibuat_pada = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Dibuat Pada'
     )
-    
+
     diupdate_pada = models.DateTimeField(
         auto_now=True,
         verbose_name='Diupdate Pada'
     )
-    
+
     class Meta:
         verbose_name = 'Surat Masuk'
         verbose_name_plural = 'Surat Masuk'
@@ -160,10 +166,10 @@ class SuratMasuk(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['-tanggal_diterima']),
         ]
-    
+
     def __str__(self):
         return f"{self.nomor_surat} - {self.pengirim}"
-    
+
     def get_status_display_badge(self):
         """
         Return status dengan class CSS untuk badge
@@ -174,7 +180,7 @@ class SuratMasuk(models.Model):
             'selesai': 'badge-status-surat selesai',
         }
         return status_classes.get(self.status, 'badge-status-surat')
-    
+
     def get_file_extension(self):
         """
         Return ekstensi file untuk menampilkan icon yang sesuai
@@ -199,14 +205,14 @@ class Disposisi(models.Model):
         ('biasa', 'Biasa'),
         ('segera', 'Segera'),
     ]
-    
+
     prioritas = models.CharField(
         max_length=20,
         choices=PRIORITAS_CHOICES,
         default='biasa',
         verbose_name='Prioritas'
     )
-    
+
     tenggat_waktu = models.DateField(
         null=True,
         blank=True,
@@ -278,7 +284,8 @@ class Disposisi(models.Model):
         ordering = ['-tanggal_dibuat']
 
     def __str__(self):
-        return f"Disposisi {self.surat.nomor_surat} ke {self.penerima_disposisi.username}"
+        penerima = self.penerima_disposisi.username if self.penerima_disposisi else "(tidak ada)"
+        return f"Disposisi {self.surat.nomor_surat} ke {penerima}"
 
 
 class SuratKeluar(models.Model):
@@ -312,7 +319,7 @@ class SuratKeluar(models.Model):
         blank=True,
         null=True
     )
-    
+
     departemen = models.CharField(
         max_length=10,
         choices=DEPARTEMEN_CHOICES,
@@ -397,13 +404,13 @@ class SuratKeluar(models.Model):
             now = timezone.now()
             current_year = now.year
             current_month_roman = get_roman_month(now.month)
-            
+
             with transaction.atomic():
                 # Cari surat keluar terakhir di tahun yang sama
                 last_surat = SuratKeluar.objects.select_for_update().filter(
                     tanggal_dibuat__year=current_year
                 ).exclude(nomor_surat__isnull=True).exclude(nomor_surat='').exclude(nomor_surat__icontains='Konsep').order_by('id').last()
-                
+
                 if last_surat and last_surat.nomor_surat:
                     try:
                         last_number = int(last_surat.nomor_surat.split('/')[0])
@@ -412,8 +419,8 @@ class SuratKeluar(models.Model):
                         new_number = 1
                 else:
                     new_number = 1
-                    
-                self.nomor_surat = f"{new_number:03d}/{self.jenis_surat}/{self.departemen}/{current_month_roman}/{current_year}"
-                
-        super().save(*args, **kwargs)
 
+                jenis = self.jenis_surat if self.jenis_surat else 'UM'
+                self.nomor_surat = f"{new_number:03d}/{jenis}/{self.departemen}/{current_month_roman}/{current_year}"
+
+        super().save(*args, **kwargs)

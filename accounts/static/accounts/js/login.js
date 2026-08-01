@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             try {
-                const url = '/accounts/api/lupa-password/';
+                const url = '/api/lupa-password/';
                 const formData = new FormData();
                 formData.append('username', username);
                 formData.append('captcha_answer', captcha_answer);
@@ -194,7 +194,7 @@ function switchTab(targetTab) {
 async function generateCaptcha() {
     const questionElement = document.getElementById('captchaQuestion');
     const wrapper = questionElement?.closest('.captcha-wrapper');
-    const url = wrapper?.getAttribute('data-captcha-url') || '/accounts/api/captcha/';
+    const url = wrapper?.getAttribute('data-captcha-url') || '/api/captcha/';
 
     try {
         if (questionElement) questionElement.textContent = '...';
@@ -225,7 +225,7 @@ async function generateCaptcha() {
 async function generateRegisterCaptcha() {
     const questionElement = document.getElementById('regCaptchaQuestion');
     const wrapper = questionElement?.closest('.captcha-wrapper');
-    const url = wrapper?.getAttribute('data-captcha-url') || '/accounts/api/captcha/';
+    const url = wrapper?.getAttribute('data-captcha-url') || '/api/captcha/';
 
     try {
         if (questionElement) questionElement.textContent = '...';
@@ -385,7 +385,7 @@ async function generateLupaCaptcha() {
     const captchaInput = document.getElementById('lupa_captcha');
     
     const wrapper = document.querySelector('.captcha-wrapper');
-    const url = wrapper?.getAttribute('data-captcha-url') || '/accounts/api/captcha/';
+    const url = wrapper?.getAttribute('data-captcha-url') || '/api/captcha/';
     
     try {
         if (questionElement) questionElement.textContent = '...';

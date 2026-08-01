@@ -25,7 +25,7 @@ MANIFEST
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-/media
+# /media (Commented out so existing images get pushed to github)
 /staticfiles
 
 # Virtual Environment

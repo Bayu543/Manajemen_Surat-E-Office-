@@ -16,14 +16,21 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Disposisi',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('instruksi', models.TextField(verbose_name='Instruksi Disposisi')),
-                ('status', models.CharField(choices=[('baru', 'Baru'), ('diproses', 'Diproses'), ('selesai', 'Selesai')], default='baru', max_length=20, verbose_name='Status')),
-                ('tanggal_dibuat', models.DateTimeField(auto_now_add=True, verbose_name='Tanggal Dibuat')),
-                ('tanggal_selesai', models.DateTimeField(blank=True, help_text='Timestamp spesifik saat disposisi diselesaikan', null=True, verbose_name='Tanggal Selesai')),
-                ('pemberi_disposisi', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='disposisi_diberikan', to=settings.AUTH_USER_MODEL, verbose_name='Pemberi Disposisi')),
-                ('penerima_disposisi', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disposisi_diterima', to=settings.AUTH_USER_MODEL, verbose_name='Penerima Disposisi')),
-                ('surat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='disposisi_list', to='accounts.suratmasuk', verbose_name='Surat Terkait')),
+                ('status', models.CharField(choices=[('baru', 'Baru'), ('diproses', 'Diproses'), (
+                    'selesai', 'Selesai')], default='baru', max_length=20, verbose_name='Status')),
+                ('tanggal_dibuat', models.DateTimeField(
+                    auto_now_add=True, verbose_name='Tanggal Dibuat')),
+                ('tanggal_selesai', models.DateTimeField(
+                    blank=True, help_text='Timestamp spesifik saat disposisi diselesaikan', null=True, verbose_name='Tanggal Selesai')),
+                ('pemberi_disposisi', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='disposisi_diberikan', to=settings.AUTH_USER_MODEL, verbose_name='Pemberi Disposisi')),
+                ('penerima_disposisi', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='disposisi_diterima', to=settings.AUTH_USER_MODEL, verbose_name='Penerima Disposisi')),
+                ('surat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='disposisi_list', to='accounts.suratmasuk', verbose_name='Surat Terkait')),
             ],
             options={
                 'verbose_name': 'Disposisi',

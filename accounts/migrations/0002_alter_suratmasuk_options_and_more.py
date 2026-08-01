@@ -32,7 +32,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratmasuk',
             name='dibuat_oleh',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='surat_dibuat', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='surat_dibuat', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
@@ -42,7 +43,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratmasuk',
             name='ditugaskan_ke',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='surat_tugas', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='surat_tugas', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
@@ -67,7 +69,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='suratmasuk',
             name='status',
-            field=models.CharField(choices=[('Pending', 'Pending'), ('Diproses', 'Diproses'), ('Selesai', 'Selesai')], default='Pending', max_length=20),
+            field=models.CharField(choices=[('Pending', 'Pending'), ('Diproses', 'Diproses'), (
+                'Selesai', 'Selesai')], default='Pending', max_length=20),
         ),
         migrations.AlterField(
             model_name='suratmasuk',

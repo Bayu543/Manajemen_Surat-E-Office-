@@ -688,33 +688,96 @@ body {
 
 /* Responsive Design */
 @media (max-width: 1024px) {
+    .login-container {
+        flex-direction: column;
+        min-height: 100dvh;
+        overflow: hidden;
+    }
+    
     .left-panel {
-        display: none;
+        display: flex;
+        flex: none;
+        height: 35vh;
+        min-height: 220px;
+        padding: 1.5rem;
+        /* Hapus warna overlay agar gambar terlihat cerah */
+    }
+    
+    .left-panel::before {
+        background: rgba(15, 52, 96, 0.3); /* Lebih transparan */
+    }
+    
+    .left-panel .branding {
+        display: none; /* Sembunyikan teks agar fokus ke gambar (seperti referensi) */
     }
     
     .right-panel {
         flex: 1;
+        padding: 0;
+        background: transparent;
+        align-items: flex-start;
+        overflow-y: auto;
+        /* Smooth scrolling */
+        -webkit-overflow-scrolling: touch;
+        margin-top: -40px; /* Pull the scroll container up over the image */
+        z-index: 10;
+        position: relative;
+    }
+    
+    .login-card {
+        border-radius: 40px 40px 0 0; /* Lebih bulat dan tidak kaku */
+        margin: 0; /* Tidak perlu negative margin di sini agar tidak terpotong */
+        max-width: 100%;
+        min-height: calc(65vh + 40px);
+        padding: 3rem 2rem 2.5rem 2rem; /* Tambah padding atas agar isi lebih rileks */
+        box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.15); /* Shadow lebih lembut ke atas */
+        position: relative;
+        display: flex;
+        flex-direction: column;
     }
 }
 
 @media (max-width: 640px) {
     .login-card {
-        padding: 2rem 1.5rem;
+        padding: 2rem 1.5rem 3rem 1.5rem; /* Tambah padding bawah agar tidak menempel dasar layar */
     }
     
     .tabs {
-        gap: 0.5rem;
+        gap: 0.25rem;
+        margin-bottom: 1.5rem;
     }
     
     .tab-btn {
-        padding: 0.75rem 1rem;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .welcome-text {
+        margin-bottom: 1.5rem;
+    }
+    
+    .welcome-text h2 {
+        font-size: 1.4rem;
+    }
+    
+    .welcome-text p {
+        font-size: 0.85rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .input-wrapper input, .input-wrapper select {
+        padding: 0.7rem 1rem 0.7rem 2.5rem;
         font-size: 0.9rem;
     }
-    
-    .right-panel {
-        padding: 1rem;
+
+    .input-wrapper i {
+        left: 0.85rem;
+        font-size: 0.9rem;
     }
-    
+
     .captcha-wrapper {
         flex-wrap: wrap;
         gap: 0.75rem;
@@ -725,5 +788,11 @@ body {
         width: 100%;
         justify-content: center;
         white-space: nowrap;
+    }
+
+    .register-link {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        font-size: 0.85rem;
     }
 }

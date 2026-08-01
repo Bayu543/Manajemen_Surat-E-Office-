@@ -1,3 +1,6 @@
+from .models import SuratKeluar
+from django.core.files.base import ContentFile
+from .utils import render_to_pdf
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -19,19 +22,19 @@ def generate_captcha_logic():
     num2 = random.randint(1, 5)
     operators = ['+', '-', '*']
     operator = random.choice(operators)
-    
+
     # Pastikan hasil pengurangan tidak negatif untuk kenyamanan user
     if operator == '-':
         if num1 < num2:
             num1, num2 = num2, num1
-            
+
     if operator == '+':
         answer = num1 + num2
     elif operator == '-':
         answer = num1 - num2
     else:
         answer = num1 * num2
-        
+
     return f"{num1} {operator} {num2} = ?", str(answer)
 
 
@@ -51,19 +54,19 @@ def login_view(request):
     # Otomatis logout jika mengakses halaman login via GET agar selalu mengarah ke halaman awal
     if request.user.is_authenticated and request.method == 'GET':
         logout(request)
-    
+
     if request.method == 'POST':
         username_or_email = request.POST.get('username')
         password = request.POST.get('password')
         remember_me = request.POST.get('remember_me')
         # Captcha dihapus untuk login sesuai permintaan
-        
+
         print(f"[LOGIN] Captcha valid (Signed Token verified), proceeding...")
-        
+
         print(f"[LOGIN] Captcha valid, proceeding to authentication...")
-        
+
         print(f"[LOGIN] Attempting login for: {username_or_email}")
-        
+
         # Try to find user by email first
         user_obj = None
         if '@' in username_or_email:
@@ -71,7 +74,8 @@ def login_view(request):
             user_obj = User.objects.filter(email=username_or_email).first()
             if user_obj:
                 username = user_obj.username
-                print(f"[LOGIN] Found user by email: {username}, is_active: {user_obj.is_active}, is_superuser: {user_obj.is_superuser}")
+                print(
+                    f"[LOGIN] Found user by email: {username}, is_active: {user_obj.is_active}, is_superuser: {user_obj.is_superuser}")
             else:
                 username = username_or_email
                 print(f"[LOGIN] Email not found, trying as username")
@@ -80,30 +84,34 @@ def login_view(request):
             username = username_or_email
             try:
                 user_obj = User.objects.get(username=username)
-                print(f"[LOGIN] Found user by username: {username}, is_active: {user_obj.is_active}, is_superuser: {user_obj.is_superuser}")
+                print(
+                    f"[LOGIN] Found user by username: {username}, is_active: {user_obj.is_active}, is_superuser: {user_obj.is_superuser}")
             except User.DoesNotExist:
                 print(f"[LOGIN] Username not found: {username}")
-        
+
         # Authenticate
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
             # Check if user is active
             if not user.is_active:
                 print(f"[LOGIN] User {username} is not active!")
-                messages.error(request, 'Akun Anda tidak aktif. Hubungi administrator.')
+                messages.error(
+                    request, 'Akun Anda tidak aktif. Hubungi administrator.')
                 return render(request, 'accounts/login.html')
-            
+
             login(request, user)
-            
+
             # Set session expiry
             if not remember_me:
-                request.session.set_expiry(0)  # Session expires when browser closes
+                # Session expires when browser closes
+                request.session.set_expiry(0)
             else:
                 request.session.set_expiry(1209600)  # 2 weeks
-            
-            print(f"[LOGIN] Success! User: {user.username}, is_superuser: {user.is_superuser}, is_staff: {user.is_staff}")
-            
+
+            print(
+                f"[LOGIN] Success! User: {user.username}, is_superuser: {user.is_superuser}, is_staff: {user.is_staff}")
+
             messages.success(request, 'Login berhasil!')
             return redirect('dashboard')
         else:
@@ -111,7 +119,7 @@ def login_view(request):
             if user_obj:
                 print(f"[LOGIN] User exists but password incorrect or user inactive")
             messages.error(request, 'Email atau password salah!')
-    
+
     return render(request, 'accounts/login.html')
 
 
@@ -119,69 +127,71 @@ def register_view(request):
     """View untuk registrasi user baru"""
     if request.user.is_authenticated:
         return redirect('dashboard')
-    
+
     if request.method == 'POST':
         try:
             fullname = request.POST.get('fullname', '').strip()
             email = request.POST.get('email', '').strip()
             password = request.POST.get('password', '')
             role = request.POST.get('role', 'staff')
-            captcha_answer = request.POST.get('captcha_answer', '').replace(' ', '').strip()
+            captcha_answer = request.POST.get(
+                'captcha_answer', '').replace(' ', '').strip()
             captcha_token = request.POST.get('captcha_token', '')
-            
+
             # Validasi Captcha
             is_valid = False
             expected = request.session.pop('captcha_expected', None)
             if expected and captcha_answer == expected:
                 is_valid = True
-                
+
             if not is_valid:
-                messages.error(request, 'Verifikasi keamanan (Captcha) tidak valid atau kedaluwarsa. Silakan coba lagi.')
+                messages.error(
+                    request, 'Verifikasi keamanan (Captcha) tidak valid atau kedaluwarsa. Silakan coba lagi.')
                 return redirect('login')
-            
+
             print(f"[REGISTER] Attempting to register: {email}, role: {role}")
-            
+
             # Validasi input
             if not fullname or not email or not password:
                 messages.error(request, 'Semua field harus diisi!')
                 return redirect('login')
-            
+
             # Validasi password
             if len(password) < 8:
                 messages.error(request, 'Password harus minimal 8 karakter!')
                 return redirect('login')
-            
+
             # Validasi email sudah terdaftar
             if User.objects.filter(email=email).exists():
                 messages.error(request, 'Email sudah terdaftar!')
                 return redirect('login')
-            
+
             # Extract username from email
             username = email.split('@')[0]
-            
+
             # Check if username exists, add number if needed
             base_username = username
             counter = 1
             while User.objects.filter(username=username).exists():
                 username = f"{base_username}{counter}"
                 counter += 1
-            
+
             print(f"[REGISTER] Creating user with username: {username}")
-            
+
             # Create user
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password
             )
-            
+
             # Set full name
             if fullname:
                 name_parts = fullname.split(' ', 1)
                 user.first_name = name_parts[0]
                 if len(name_parts) > 1:
                     user.last_name = name_parts[1]
-            
+
             # Set role - only superuser for admin, regular user for staff
             if role == 'admin':
                 user.is_superuser = True
@@ -192,30 +202,31 @@ def register_view(request):
                 user.is_superuser = False
                 user.is_staff = False
                 user.is_active = True  # Explicitly set to ensure user can login
-            
+
             user.save()
-            
-            # Create UserProfile for the new user
-            UserProfile.objects.create(
-                user=user,
-                jabatan='Staff',
-                nip='',
-                phone='',
-                alamat=''
-            )
-            
-            print(f"[REGISTER] User created successfully: {username}, is_superuser: {user.is_superuser}, is_active: {user.is_active}")
-            
-            messages.success(request, f'Registrasi berhasil! Akun staff Anda telah dibuat. Silakan login dengan email dan password Anda.')
+
+            # Update UserProfile yang sudah dibuat oleh signal post_save
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.jabatan = 'Staff'
+            profile.nip = ''
+            profile.phone = ''
+            profile.alamat = ''
+            profile.save()
+
+            print(
+                f"[REGISTER] User created successfully: {username}, is_superuser: {user.is_superuser}, is_active: {user.is_active}")
+
+            messages.success(
+                request, f'Registrasi berhasil! Akun staff Anda telah dibuat. Silakan login dengan email dan password Anda.')
             return redirect('login')
-            
+
         except Exception as e:
             print(f"[REGISTER ERROR] {str(e)}")
             import traceback
             traceback.print_exc()
             messages.error(request, f'Terjadi kesalahan: {str(e)}')
             return redirect('login')
-    
+
     return redirect('login')
 
 
@@ -223,8 +234,9 @@ def register_view(request):
 def lupa_password_view(request):
     """API view untuk mereset password ke default jika user lupa"""
     username_or_email = request.POST.get('username', '').strip()
-    captcha_answer    = request.POST.get('captcha_answer', '').replace(' ', '').strip()
-    captcha_token     = request.POST.get('captcha_token', '')
+    captcha_answer = request.POST.get(
+        'captcha_answer', '').replace(' ', '').strip()
+    captcha_token = request.POST.get('captcha_token', '')
 
     # 1. Validasi Captcha
     is_valid = False
@@ -269,13 +281,13 @@ def logout_view(request):
 def dashboard_view(request):
     """View untuk dashboard setelah login"""
     from datetime import datetime
-    
+
     # Statistik Dasar
     total_masuk = SuratMasuk.objects.count()
     total_keluar = SuratKeluar.objects.count()
     pending_proses = SuratMasuk.objects.filter(status='diproses').count()
     surat_selesai = SuratMasuk.objects.filter(status='selesai').count()
-    
+
     # Statistik Detail untuk Ringkasan Status
     masuk_baru = SuratMasuk.objects.filter(status='baru').count()
     sedang_diproses = pending_proses
@@ -283,7 +295,8 @@ def dashboard_view(request):
 
     # Hitung Persentase untuk Progress Bar
     def get_pct(count, total):
-        if not total or total == 0: return 0
+        if not total or total == 0:
+            return 0
         return min(int((count / total) * 100), 100)
 
     p_baru = get_pct(masuk_baru, total_masuk)
@@ -297,7 +310,7 @@ def dashboard_view(request):
         'total_keluar': total_keluar,
         'pending_proses': pending_proses,
         'surat_selesai': surat_selesai,
-        'selesai_count': surat_selesai, # fallback untuk template
+        'selesai_count': surat_selesai,  # fallback untuk template
         'masuk_baru': masuk_baru,
         'sedang_diproses': sedang_diproses,
         'sk_menunggu': sk_menunggu,
@@ -321,8 +334,9 @@ def dashboard_view(request):
                 'tanggal_diterima': s.tanggal_diterima,
                 'status': s.status
             })
-            
-        sk = SuratKeluar.objects.exclude(status='draft').order_by('-tanggal_dibuat')[:3]
+
+        sk = SuratKeluar.objects.exclude(
+            status='draft').order_by('-tanggal_dibuat')[:3]
         recent_sk = []
         for s in sk:
             recent_sk.append({
@@ -334,22 +348,29 @@ def dashboard_view(request):
                 'tanggal_diterima': s.tanggal_dibuat,
                 'status': 'menunggu' if s.status == 'diajukan' else 'selesai'
             })
-            
-        recent_activity = sorted(recent_sm + recent_sk, key=lambda x: x['tanggal_diterima'], reverse=True)[:8]
+
+        recent_activity = sorted(
+            recent_sm + recent_sk, key=lambda x: x['tanggal_diterima'], reverse=True)[:8]
         context['recent_activity'] = recent_activity
         return render(request, 'accounts/admin/dashboard.html', context)
     else:
         # Staff Dashboard
-        tugas_saya_list = SuratMasuk.objects.filter(ditugaskan_ke=request.user).order_by('-tanggal_diterima')[:5]
-        disposisi_list = Disposisi.objects.filter(penerima_disposisi=request.user).order_by('-tanggal_dibuat')[:5]
-        
-        surat_ditugaskan_count = SuratMasuk.objects.filter(ditugaskan_ke=request.user).count()
-        disposisi_count = Disposisi.objects.filter(penerima_disposisi=request.user, status='baru').count()
-        
-        surat_selesai_user = SuratMasuk.objects.filter(ditugaskan_ke=request.user, status='selesai').count()
-        disposisi_selesai_user = Disposisi.objects.filter(penerima_disposisi=request.user, status='selesai').count()
+        tugas_saya_list = SuratMasuk.objects.filter(
+            ditugaskan_ke=request.user).order_by('-tanggal_diterima')[:5]
+        disposisi_list = Disposisi.objects.filter(
+            penerima_disposisi=request.user).order_by('-tanggal_dibuat')[:5]
+
+        surat_ditugaskan_count = SuratMasuk.objects.filter(
+            ditugaskan_ke=request.user).count()
+        disposisi_count = Disposisi.objects.filter(
+            penerima_disposisi=request.user, status='baru').count()
+
+        surat_selesai_user = SuratMasuk.objects.filter(
+            ditugaskan_ke=request.user, status='selesai').count()
+        disposisi_selesai_user = Disposisi.objects.filter(
+            penerima_disposisi=request.user, status='selesai').count()
         tugas_selesai_count = surat_selesai_user + disposisi_selesai_user
-        
+
         context.update({
             'tugas_saya_list': tugas_saya_list,
             'disposisi_list': disposisi_list,
@@ -367,15 +388,17 @@ def surat_masuk_view(request):
         if not request.user.is_superuser:
             return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
 
-        nomor_surat    = request.POST.get('nomor_surat', '').strip()
-        pengirim       = (request.POST.get('pengirim') or request.POST.get('nama_pengirim', '')).strip()
-        perihal        = request.POST.get('perihal', '').strip()
-        tanggal_surat  = request.POST.get('tanggal_surat', '').strip()
-        status         = request.POST.get('status', 'baru').strip()
-        sifat          = request.POST.get('sifat_surat', 'biasa').strip()
-        tugas_id       = request.POST.get('tugas_ke_staff', '').strip()
-        catatan        = request.POST.get('ringkasan', '').strip()
-        file_surat     = request.FILES.get('file_surat')
+        nomor_surat = request.POST.get('nomor_surat', '').strip()
+        pengirim = (request.POST.get('pengirim')
+                    or request.POST.get('nama_pengirim', '')).strip()
+        perihal = request.POST.get('perihal', '').strip()
+        tanggal_surat = request.POST.get('tanggal_surat', '').strip()
+        status = request.POST.get('status', 'baru').strip()
+        sifat = request.POST.get('sifat_surat', 'biasa').strip()
+        tenggat_waktu = request.POST.get('tenggat_waktu', '').strip() or None
+        tugas_id = request.POST.get('tugas_ke_staff', '').strip()
+        catatan = request.POST.get('ringkasan', '').strip()
+        file_surat = request.FILES.get('file_surat')
 
         # Validasi wajib
         if not nomor_surat or not pengirim or not perihal or not tanggal_surat:
@@ -402,36 +425,38 @@ def surat_masuk_view(request):
                 pass
 
         surat = SuratMasuk.objects.create(
-            nomor_surat   = nomor_surat,
-            pengirim      = pengirim,
-            perihal       = perihal,
-            tanggal_surat = tanggal_surat,
-            status        = status,
-            prioritas     = sifat if sifat in ('biasa', 'segera') else 'biasa',
-            ditugaskan_ke = ditugaskan_ke,
-            catatan       = catatan,
-            file_surat    = file_surat,
-            dibuat_oleh   = request.user,
+            nomor_surat=nomor_surat,
+            pengirim=pengirim,
+            perihal=perihal,
+            tanggal_surat=tanggal_surat,
+            status=status,
+            prioritas=sifat if sifat in ('biasa', 'segera') else 'biasa',
+            tenggat_waktu=tenggat_waktu,
+            ditugaskan_ke=ditugaskan_ke,
+            catatan=catatan,
+            file_surat=file_surat,
+            dibuat_oleh=request.user,
         )
 
         return JsonResponse({
             'success': True,
             'message': 'Surat masuk berhasil ditambahkan.',
             'surat': {
-                'id'            : surat.id,
-                'nomor_surat'   : surat.nomor_surat,
-                'pengirim'      : surat.pengirim,
-                'perihal'       : surat.perihal,
-                'tanggal_surat' : surat.tanggal_surat.strftime('%d %b %Y') if hasattr(surat.tanggal_surat, 'strftime') else str(surat.tanggal_surat),
-                'status'        : surat.status,
-                'ditugaskan_ke' : surat.ditugaskan_ke.get_full_name() or surat.ditugaskan_ke.username if surat.ditugaskan_ke else '-',
+                'id': surat.id,
+                'nomor_surat': surat.nomor_surat,
+                'pengirim': surat.pengirim,
+                'perihal': surat.perihal,
+                'tanggal_surat': surat.tanggal_surat.strftime('%d %b %Y') if hasattr(surat.tanggal_surat, 'strftime') else str(surat.tanggal_surat),
+                'status': surat.status,
+                'ditugaskan_ke': surat.ditugaskan_ke.get_full_name() or surat.ditugaskan_ke.username if surat.ditugaskan_ke else '-',
             }
         })
 
     # GET
     if request.user.is_superuser:
-        surat_list  = SuratMasuk.objects.select_related('ditugaskan_ke').all()
-        staff_list  = User.objects.filter(is_superuser=False, is_active=True).order_by('first_name')
+        surat_list = SuratMasuk.objects.select_related('ditugaskan_ke').all()
+        staff_list = User.objects.filter(
+            is_superuser=False, is_active=True).order_by('first_name')
         return render(request, 'accounts/admin/surat_masuk.html', {
             'surat_list': surat_list,
             'staff_list': staff_list,
@@ -445,17 +470,23 @@ def surat_masuk_view(request):
 def surat_keluar_view(request):
     """View untuk halaman surat keluar - Mengambil data riil dari DB"""
     if request.user.is_superuser:
-        surat_keluar_list = SuratKeluar.objects.select_related('pembuat').all().order_by('-tanggal_dibuat')
+        surat_keluar_list = SuratKeluar.objects.select_related(
+            'pembuat').all().order_by('-tanggal_dibuat')
         count_draft = SuratKeluar.objects.filter(status='draft').count()
         count_diajukan = SuratKeluar.objects.filter(status='diajukan').count()
         count_revisi = SuratKeluar.objects.filter(status='revisi').count()
         count_selesai = SuratKeluar.objects.filter(status='disetujui').count()
     else:
-        surat_keluar_list = SuratKeluar.objects.filter(pembuat=request.user).order_by('-tanggal_dibuat')
-        count_draft = SuratKeluar.objects.filter(pembuat=request.user, status='draft').count()
-        count_diajukan = SuratKeluar.objects.filter(pembuat=request.user, status='diajukan').count()
-        count_revisi = SuratKeluar.objects.filter(pembuat=request.user, status='revisi').count()
-        count_selesai = SuratKeluar.objects.filter(pembuat=request.user, status='disetujui').count()
+        surat_keluar_list = SuratKeluar.objects.filter(
+            pembuat=request.user).order_by('-tanggal_dibuat')
+        count_draft = SuratKeluar.objects.filter(
+            pembuat=request.user, status='draft').count()
+        count_diajukan = SuratKeluar.objects.filter(
+            pembuat=request.user, status='diajukan').count()
+        count_revisi = SuratKeluar.objects.filter(
+            pembuat=request.user, status='revisi').count()
+        count_selesai = SuratKeluar.objects.filter(
+            pembuat=request.user, status='disetujui').count()
 
     context = {
         'surat_keluar_list': surat_keluar_list,
@@ -464,11 +495,12 @@ def surat_keluar_view(request):
         'count_revisi': count_revisi,
         'count_selesai': count_selesai,
     }
-    
+
     if request.user.is_superuser:
         return render(request, 'accounts/admin/surat_keluar.html', context)
     else:
         return render(request, 'accounts/staff/surat_keluar.html', context)
+
 
 @login_required
 def buat_draft_action(request):
@@ -476,66 +508,78 @@ def buat_draft_action(request):
     if request.method == 'POST':
         if request.user.is_superuser:
             return HttpResponseForbidden("Admin tidak membuat draft surat.")
-        
+
         action_type = request.POST.get('action_type', 'diajukan')
         status_val = 'diajukan' if action_type == 'diajukan' else 'draft'
-        
+
         perihal = request.POST.get('perihal', '').strip()
         tujuan = request.POST.get('tujuan', '').strip()
         nomor_surat = request.POST.get('nomor_surat', '').strip()
         klasifikasi = request.POST.get('klasifikasi', '').strip()
         catatan = request.POST.get('catatan', '').strip()
+        isi_surat = request.POST.get('isi_surat', '').strip()
         file_draf = request.FILES.get('file_draf')
-        
-        if not perihal or not tujuan or not file_draf or not klasifikasi:
-            messages.error(request, 'Klasifikasi, Perihal, Tujuan, dan File Draf wajib diisi.')
+
+        if not perihal or not tujuan or not klasifikasi:
+            messages.error(
+                request, 'Klasifikasi, Perihal, dan Tujuan wajib diisi.')
+            return redirect('surat_keluar')
+
+        if not file_draf and not isi_surat:
+            messages.error(
+                request, 'Harus melampirkan File Draf atau mengisi Isi Surat.')
             return redirect('surat_keluar')
 
         if file_draf:
             if file_draf.size > 5 * 1024 * 1024:
-                messages.error(request, 'Ukuran file draf terlalu besar! Maksimal 5 MB.')
+                messages.error(
+                    request, 'Ukuran file draf terlalu besar! Maksimal 5 MB.')
                 return redirect('surat_keluar')
             import os
             ext = os.path.splitext(file_draf.name)[1].lower()
             if ext not in ['.pdf', '.doc', '.docx']:
-                messages.error(request, 'Format file draf tidak didukung! Hanya diperbolehkan PDF atau Word (DOC/DOCX).')
+                messages.error(
+                    request, 'Format file draf tidak didukung! Hanya diperbolehkan PDF atau Word (DOC/DOCX).')
                 return redirect('surat_keluar')
-            
+
         if klasifikasi and not nomor_surat:
             nomor_surat = f"{klasifikasi} (Konsep)"
-            
+
         if catatan:
             perihal = f"{perihal}\n\n[Catatan Pengantar Staf]: {catatan}"
-            
+
         SuratKeluar.objects.create(
             perihal=perihal,
             tujuan=tujuan,
             nomor_surat=nomor_surat,
+            isi_surat=isi_surat,
             file_draf=file_draf,
             status=status_val,
             pembuat=request.user,
             jenis_surat=klasifikasi
         )
-        messages.success(request, f"Surat Keluar berhasil disimpan dengan status '{status_val.capitalize()}'.")
-        
+        messages.success(
+            request, f"Surat Keluar berhasil disimpan dengan status '{status_val.capitalize()}'.")
+
     return redirect('surat_keluar')
+
 
 @login_required
 def ajukan_draft_action(request, id):
     """View untuk mengubah status draft menjadi diajukan"""
     if request.method == 'POST':
         draft = get_object_or_404(SuratKeluar, id=id)
-        
+
         if request.user != draft.pembuat:
             return HttpResponseForbidden("Anda tidak berhak mengajukan draft ini.")
-            
+
         if draft.status != 'draft':
             messages.error(request, 'Hanya draft yang bisa diajukan.')
         else:
             draft.status = 'diajukan'
             draft.save()
             messages.success(request, 'Draft berhasil diajukan ke Admin.')
-            
+
     return redirect('surat_keluar')
 
 
@@ -568,15 +612,15 @@ def tolak_surat_keluar(request, id):
     surat = get_object_or_404(SuratKeluar, id=id)
     if surat.status != 'diajukan':
         return JsonResponse({'success': False, 'message': 'Hanya surat dengan status Diajukan yang dapat direvisi.'}, status=400)
-    
+
     catatan = request.POST.get('catatan_revisi', '').strip()
     if not catatan:
         return JsonResponse({'success': False, 'message': 'Catatan revisi wajib diisi.'}, status=400)
-        
+
     surat.status = 'revisi'
     surat.catatan_revisi = catatan
     surat.save()
-    
+
     return JsonResponse({
         'success': True,
         'message': 'Surat keluar berhasil dikembalikan untuk direvisi.'
@@ -588,9 +632,9 @@ def notifications_api(request):
     """API view to fetch unread notifications dynamically for polling"""
     from accounts.context_processors import get_user_notifications
     from django.utils.timesince import timesince
-    
+
     data = get_user_notifications(request.user)
-    
+
     serialized_recent = []
     for notif in data['recent_notifications']:
         serialized_recent.append({
@@ -602,7 +646,7 @@ def notifications_api(request):
             'time_ago': timesince(notif['time_ago']) + ' yang lalu',
             'url': notif['url']
         })
-        
+
     return JsonResponse({
         'unread_count': data['unread_notifications_count'],
         'recent_notifications': serialized_recent
@@ -616,11 +660,11 @@ def disposisi_view(request):
         if not request.user.is_superuser:
             return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
 
-        surat_id    = request.POST.get('surat_id', '').strip()
-        staff_ids   = request.POST.getlist('staff_ids')   # bisa multi
-        instruksi   = request.POST.get('instruksi', '').strip()
-        prioritas   = request.POST.get('prioritas', 'biasa').strip()
-        tenggat     = request.POST.get('tenggat_waktu', '').strip() or None
+        surat_id = request.POST.get('surat_id', '').strip()
+        staff_ids = request.POST.getlist('staff_ids')   # bisa multi
+        instruksi = request.POST.get('instruksi', '').strip()
+        prioritas = request.POST.get('prioritas', 'biasa').strip()
+        tenggat = request.POST.get('tenggat_waktu', '').strip() or None
 
         if not surat_id or not staff_ids or not instruksi:
             return JsonResponse({'success': False, 'message': 'Surat, staff, dan instruksi wajib diisi.'}, status=400)
@@ -633,45 +677,50 @@ def disposisi_view(request):
             except (User.DoesNotExist, ValueError):
                 continue
             d = Disposisi.objects.create(
-                surat               = surat,
-                pemberi_disposisi   = request.user,
-                penerima_disposisi  = staff,
-                instruksi           = instruksi,
-                prioritas           = prioritas if prioritas in ('biasa', 'segera') else 'biasa',
-                tenggat_waktu       = tenggat or None,
-                status              = 'baru',
+                surat=surat,
+                pemberi_disposisi=request.user,
+                penerima_disposisi=staff,
+                instruksi=instruksi,
+                prioritas=prioritas if prioritas in (
+                    'biasa', 'segera') else 'biasa',
+                tenggat_waktu=tenggat or None,
+                status='baru',
             )
             created.append({
-                'id'       : d.id,
-                'staff'    : staff.get_full_name() or staff.username,
-                'status'   : d.status,
-                'tanggal'  : d.tanggal_dibuat.strftime('%d %b %Y'),
+                'id': d.id,
+                'staff': staff.get_full_name() or staff.username,
+                'status': d.status,
+                'tanggal': d.tanggal_dibuat.strftime('%d %b %Y'),
             })
 
         return JsonResponse({'success': True, 'message': f'{len(created)} disposisi berhasil dibuat.', 'disposisi': created})
 
     # GET
     if request.user.is_superuser:
-        disposisi_list = Disposisi.objects.select_related('surat', 'penerima_disposisi').all()
-        surat_list     = SuratMasuk.objects.all().order_by('-tanggal_diterima')
-        staff_list     = User.objects.filter(is_superuser=False, is_active=True).order_by('first_name')
+        disposisi_list = Disposisi.objects.select_related(
+            'surat', 'penerima_disposisi').all()
+        surat_list = SuratMasuk.objects.all().order_by('-tanggal_diterima')
+        staff_list = User.objects.filter(
+            is_superuser=False, is_active=True).order_by('first_name')
         return render(request, 'accounts/admin/disposisi.html', {
             'disposisi_list': disposisi_list,
-            'surat_list'    : surat_list,
-            'staff_list'    : staff_list,
+            'surat_list': surat_list,
+            'staff_list': staff_list,
         })
     else:
-        disposisi_list = Disposisi.objects.filter(penerima_disposisi=request.user).select_related('surat', 'pemberi_disposisi')
-        
+        disposisi_list = Disposisi.objects.filter(
+            penerima_disposisi=request.user).select_related('surat', 'pemberi_disposisi')
+
         # Hitung statistik disposisi untuk staff saat ini
         count_belum_dibaca = disposisi_list.filter(status='baru').count()
         count_dibaca = disposisi_list.filter(status='dibaca').count()
         count_diproses = disposisi_list.filter(status='diproses').count()
         count_selesai = disposisi_list.filter(status='selesai').count()
-        
+
         # Daftar Tugas Aktif (status: baru, dibaca, diproses)
-        tugas_aktif = disposisi_list.filter(status__in=['baru', 'dibaca', 'diproses']).order_by('-tanggal_dibuat')
-        
+        tugas_aktif = disposisi_list.filter(
+            status__in=['baru', 'dibaca', 'diproses']).order_by('-tanggal_dibuat')
+
         context = {
             'disposisi_list': disposisi_list,
             'count_belum_dibaca': count_belum_dibaca,
@@ -687,23 +736,25 @@ def disposisi_view(request):
 def selesaikan_disposisi(request, id):
     """Fungsi untuk mengubah status disposisi menjadi Selesai"""
     disposisi = get_object_or_404(Disposisi, id=id)
-    
+
     # Hanya penerima disposisi atau admin yang bisa mengubah status
     if request.user != disposisi.penerima_disposisi and not request.user.is_superuser:
         return HttpResponseForbidden("Anda tidak berhak mengubah status disposisi ini.")
-    
+
     if request.method == 'POST':
         catatan = request.POST.get('catatan_penyelesaian', '').strip()
         file_bukti = request.FILES.get('file_bukti')
-        
+
         if file_bukti:
             if file_bukti.size > 5 * 1024 * 1024:
-                messages.error(request, 'Ukuran file bukti terlalu besar! Maksimal 5 MB.')
+                messages.error(
+                    request, 'Ukuran file bukti terlalu besar! Maksimal 5 MB.')
                 return redirect('disposisi')
             import os
             ext = os.path.splitext(file_bukti.name)[1].lower()
             if ext not in ['.pdf', '.doc', '.docx']:
-                messages.error(request, 'Format file bukti tidak didukung! Hanya diperbolehkan PDF atau Word (DOC/DOCX).')
+                messages.error(
+                    request, 'Format file bukti tidak didukung! Hanya diperbolehkan PDF atau Word (DOC/DOCX).')
                 return redirect('disposisi')
 
         disposisi.status = 'selesai'
@@ -718,8 +769,9 @@ def selesaikan_disposisi(request, id):
         disposisi.status = 'selesai'
         disposisi.tanggal_selesai = timezone.now()
         disposisi.save()
-        messages.success(request, 'Status disposisi berhasil diubah menjadi Selesai.')
-        
+        messages.success(
+            request, 'Status disposisi berhasil diubah menjadi Selesai.')
+
     return redirect('disposisi')
 
 
@@ -728,21 +780,21 @@ def selesaikan_disposisi(request, id):
 def update_status_disposisi(request, id):
     """View untuk memperbarui status disposisi oleh staff (via AJAX/POST)"""
     disposisi = get_object_or_404(Disposisi, id=id)
-    
+
     # Hanya penerima disposisi atau admin yang bisa mengubah status
     if request.user != disposisi.penerima_disposisi and not request.user.is_superuser:
         return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
-        
+
     status = request.POST.get('status', '').strip()
     if status not in ('baru', 'dibaca', 'diproses', 'selesai'):
         return JsonResponse({'success': False, 'message': 'Status tidak valid.'}, status=400)
-        
+
     disposisi.status = status
     if status == 'selesai':
         disposisi.tanggal_selesai = timezone.now()
         catatan = request.POST.get('catatan_penyelesaian', '').strip()
         file_bukti = request.FILES.get('file_bukti')
-        
+
         if file_bukti:
             if file_bukti.size > 5 * 1024 * 1024:
                 return JsonResponse({'success': False, 'message': 'Ukuran file bukti terlalu besar! Maksimal 5 MB.'}, status=400)
@@ -761,9 +813,10 @@ def update_status_disposisi(request, id):
         # Jika langsung dari baru ke diproses, set juga dibaca jika belum
         if not disposisi.tanggal_dibaca:
             disposisi.tanggal_dibaca = timezone.now()
-            
+
     disposisi.save()
-    messages.success(request, f'Status disposisi berhasil diperbarui menjadi {status.capitalize()}.')
+    messages.success(
+        request, f'Status disposisi berhasil diperbarui menjadi {status.capitalize()}.')
     return JsonResponse({'success': True, 'message': 'Status disposisi berhasil diperbarui.'})
 
 
@@ -776,9 +829,11 @@ def batal_disposisi(request, id):
     d = get_object_or_404(Disposisi, pk=id)
     if d.status in ('baru', 'belum_dibaca'):
         d.delete()
-        messages.success(request, 'Disposisi berhasil dibatalkan dan ditarik kembali.')
+        messages.success(
+            request, 'Disposisi berhasil dibatalkan dan ditarik kembali.')
     else:
-        messages.error(request, 'Disposisi yang sudah dibaca atau diproses tidak dapat dibatalkan.')
+        messages.error(
+            request, 'Disposisi yang sudah dibaca atau diproses tidak dapat dibatalkan.')
     return redirect('disposisi')
 
 
@@ -786,21 +841,20 @@ def batal_disposisi(request, id):
 def get_detail_disposisi_api(request, id):
     """API endpoint untuk mengambil detail lengkap disposisi dan surat induknya dalam format JSON"""
     d = get_object_or_404(Disposisi, id=id)
-    
+
     if not request.user.is_superuser and request.user != d.penerima_disposisi and request.user != d.pemberi_disposisi:
         return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
-        
+
     # Jika staff membuka detail pertama kali dan status masih 'baru', ubah jadi 'dibaca'
     if request.user == d.penerima_disposisi and d.status == 'baru':
         d.status = 'dibaca'
         d.tanggal_dibaca = timezone.now()
         d.save()
-        
+
     def format_indonesian_datetime(dt, show_time=False):
         if not dt:
             return '-'
         months = {
-            1: 'Mei', # Default placeholder fallback just in case
             1: 'Januari', 2: 'Februari', 3: 'Maret', 4: 'April', 5: 'Mei', 6: 'Juni',
             7: 'Juli', 8: 'Agustus', 9: 'September', 10: 'Oktober', 11: 'November', 12: 'Desember'
         }
@@ -813,7 +867,7 @@ def get_detail_disposisi_api(request, id):
             local_dt = timezone.localtime(dt) if timezone.is_aware(dt) else dt
             return f"{day} {month} {year}, {local_dt.strftime('%H:%M')} WIB"
         return f"{day} {month} {year}"
-        
+
     s = d.surat
     data = {
         'id': d.id,
@@ -841,7 +895,6 @@ def get_detail_disposisi_api(request, id):
     return JsonResponse({'success': True, 'data': data})
 
 
-
 @login_required
 def hapus_surat(request, id):
     """Fungsi hapus surat yang diproteksi hanya untuk Admin"""
@@ -867,12 +920,14 @@ def edit_surat(request, id):
 
     surat = get_object_or_404(SuratMasuk, id=id)
 
-    nomor_surat   = request.POST.get('nomor_surat', '').strip()
-    pengirim      = request.POST.get('pengirim', '').strip()
-    perihal       = request.POST.get('perihal', '').strip()
+    nomor_surat = request.POST.get('nomor_surat', '').strip()
+    pengirim = request.POST.get('pengirim', '').strip()
+    perihal = request.POST.get('perihal', '').strip()
     tanggal_surat = request.POST.get('tanggal_surat', '').strip()
-    status        = request.POST.get('status', surat.status).strip()
-    tugas_id      = request.POST.get('ditugaskan_ke', '').strip()
+    status = request.POST.get('status', surat.status).strip()
+    sifat = request.POST.get('sifat_surat', surat.prioritas).strip()
+    tenggat_waktu = request.POST.get('tenggat_waktu', '').strip() or None
+    tugas_id = request.POST.get('ditugaskan_ke', '').strip()
 
     if not nomor_surat or not pengirim or not perihal or not tanggal_surat:
         return JsonResponse({'success': False, 'message': 'Field wajib tidak boleh kosong.'}, status=400)
@@ -888,11 +943,13 @@ def edit_surat(request, id):
         except (User.DoesNotExist, ValueError):
             pass
 
-    surat.nomor_surat   = nomor_surat
-    surat.pengirim      = pengirim
-    surat.perihal       = perihal
+    surat.nomor_surat = nomor_surat
+    surat.pengirim = pengirim
+    surat.perihal = perihal
     surat.tanggal_surat = tanggal_surat
-    surat.status        = status
+    surat.status = status
+    surat.prioritas = sifat if sifat in ('biasa', 'segera') else 'biasa'
+    surat.tenggat_waktu = tenggat_waktu
     surat.ditugaskan_ke = ditugaskan_ke
     file_surat = request.FILES.get('file_surat')
     if file_surat:
@@ -909,13 +966,13 @@ def edit_surat(request, id):
         'success': True,
         'message': 'Surat berhasil diperbarui.',
         'surat': {
-            'id'            : surat.id,
-            'nomor_surat'   : surat.nomor_surat,
-            'pengirim'      : surat.pengirim,
-            'perihal'       : surat.perihal,
-            'tanggal_surat' : surat.tanggal_surat.strftime('%d %b %Y') if hasattr(surat.tanggal_surat, 'strftime') else str(surat.tanggal_surat),
-            'status'        : surat.status,
-            'ditugaskan_ke' : surat.ditugaskan_ke.get_full_name() or surat.ditugaskan_ke.username if surat.ditugaskan_ke else '-',
+            'id': surat.id,
+            'nomor_surat': surat.nomor_surat,
+            'pengirim': surat.pengirim,
+            'perihal': surat.perihal,
+            'tanggal_surat': surat.tanggal_surat.strftime('%d %b %Y') if hasattr(surat.tanggal_surat, 'strftime') else str(surat.tanggal_surat),
+            'status': surat.status,
+            'ditugaskan_ke': surat.ditugaskan_ke.get_full_name() or surat.ditugaskan_ke.username if surat.ditugaskan_ke else '-',
         }
     })
 
@@ -942,33 +999,34 @@ def update_status_surat(request, id):
 def arsip_view(request):
     """View untuk halaman arsip - Menggabungkan Surat Masuk & Keluar"""
     from datetime import datetime
-    
+
     # Ambil Surat Masuk
     masuk = SuratMasuk.objects.all()
     for s in masuk:
         s.jenis = 'masuk'
-        s.tujuan = '-' # Tambahkan atribut tujuan agar template tidak error
-    
+        s.tujuan = '-'  # Tambahkan atribut tujuan agar template tidak error
+
     # Ambil Surat Keluar yang sudah disetujui (selesai)
     keluar = SuratKeluar.objects.filter(status='disetujui')
     for s in keluar:
         s.jenis = 'keluar'
-        s.pengirim = '-' # Tambahkan atribut pengirim agar template tidak error
+        s.pengirim = '-'  # Tambahkan atribut pengirim agar template tidak error
         s.tanggal_surat = s.tanggal_dibuat.date()
-    
+
     # Gabungkan
     from itertools import chain
     combined = sorted(
         chain(masuk, keluar),
-        key=lambda x: x.tanggal_surat if hasattr(x, 'tanggal_surat') else x.tanggal_dibuat.date(),
+        key=lambda x: x.tanggal_surat if hasattr(
+            x, 'tanggal_surat') else x.tanggal_dibuat.date(),
         reverse=True
     )
-    
+
     context = {
         'current_date': datetime.now().strftime('%A, %d-%m-%Y'),
         'surat_list': combined
     }
-    
+
     if request.user.is_superuser:
         return render(request, 'accounts/admin/arsip.html', context)
     else:
@@ -992,12 +1050,15 @@ def tambah_user_view(request):
     if not request.user.is_superuser:
         return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
 
-    nama_lengkap = (request.POST.get('nama_lengkap') or request.POST.get('x_tambah_nama', '')).strip()
-    email        = (request.POST.get('email') or request.POST.get('x_tambah_email', '')).strip()
-    jabatan      = (request.POST.get('jabatan') or request.POST.get('x_tambah_jabatan', '')).strip()
-    role         = request.POST.get('role', 'staff').strip()
-    password     = request.POST.get('password', '').strip()
-    konfirmasi   = request.POST.get('konfirmasi_password', '').strip()
+    nama_lengkap = (request.POST.get('nama_lengkap')
+                    or request.POST.get('x_tambah_nama', '')).strip()
+    email = (request.POST.get('email') or request.POST.get(
+        'x_tambah_email', '')).strip()
+    jabatan = (request.POST.get('jabatan') or request.POST.get(
+        'x_tambah_jabatan', '')).strip()
+    role = request.POST.get('role', 'staff').strip()
+    password = request.POST.get('password', '').strip()
+    konfirmasi = request.POST.get('konfirmasi_password', '').strip()
 
     if not nama_lengkap or not email or not password:
         return JsonResponse({'success': False, 'message': 'Nama, email, dan password wajib diisi.'}, status=400)
@@ -1012,15 +1073,17 @@ def tambah_user_view(request):
     base = username
     i = 1
     while User.objects.filter(username=username).exists():
-        username = f'{base}{i}'; i += 1
+        username = f'{base}{i}'
+        i += 1
 
-    user = User.objects.create_user(username=username, email=email, password=password)
+    user = User.objects.create_user(
+        username=username, email=email, password=password)
     parts = nama_lengkap.split(' ', 1)
     user.first_name = parts[0]
-    user.last_name  = parts[1] if len(parts) > 1 else ''
+    user.last_name = parts[1] if len(parts) > 1 else ''
     if role == 'admin':
         user.is_superuser = True
-        user.is_staff     = True
+        user.is_staff = True
     user.save()
 
     profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -1031,13 +1094,13 @@ def tambah_user_view(request):
         'success': True,
         'message': f'User {nama_lengkap} berhasil ditambahkan.',
         'user': {
-            'id'      : user.id,
-            'nama'    : user.get_full_name() or user.username,
-            'email'   : user.email,
-            'jabatan' : profile.jabatan,
-            'role'    : 'Admin' if user.is_superuser else 'Staff',
-            'status'  : 'Aktif' if user.is_active else 'Nonaktif',
-            'avatar'  : f"https://ui-avatars.com/api/?name={user.get_full_name() or user.username}&background=DBEAFE&color=2563EB&bold=true" if user.is_superuser else f"https://ui-avatars.com/api/?name={user.get_full_name() or user.username}&background=F3E8FF&color=7C3AED&bold=true",
+            'id': user.id,
+            'nama': user.get_full_name() or user.username,
+            'email': user.email,
+            'jabatan': profile.jabatan,
+            'role': 'Admin' if user.is_superuser else 'Staff',
+            'status': 'Aktif' if user.is_active else 'Nonaktif',
+            'avatar': f"https://ui-avatars.com/api/?name={user.get_full_name() or user.username}&background=DBEAFE&color=2563EB&bold=true" if user.is_superuser else f"https://ui-avatars.com/api/?name={user.get_full_name() or user.username}&background=F3E8FF&color=7C3AED&bold=true",
         }
     })
 
@@ -1051,11 +1114,17 @@ def edit_user_view(request, id):
 
     target = get_object_or_404(User, pk=id)
 
-    nama_lengkap = (request.POST.get('nama_lengkap') or request.POST.get('x_edit_nama', '')).strip()
-    email        = (request.POST.get('email') or request.POST.get('x_edit_email', '')).strip()
-    jabatan      = (request.POST.get('jabatan') or request.POST.get('x_edit_jabatan', '')).strip()
-    role         = (request.POST.get('role') or request.POST.get('x_edit_role', '')).strip()
-    status       = (request.POST.get('status') or request.POST.get('x_edit_status', '')).strip()
+    nama_lengkap = (request.POST.get('nama_lengkap')
+                    or request.POST.get('x_edit_nama', '')).strip()
+    email = (request.POST.get('email')
+             or request.POST.get('x_edit_email', '')).strip()
+    jabatan = (request.POST.get('jabatan')
+               or request.POST.get('x_edit_jabatan', '')).strip()
+    role = (request.POST.get('role') or request.POST.get(
+        'x_edit_role', '')).strip()
+    status = (request.POST.get('status')
+              or request.POST.get('x_edit_status', '')).strip()
+    print(f"DEBUG EDIT_USER: name={nama_lengkap}, status={status}, role={role}, email={email}")
 
     if not nama_lengkap or not email:
         return JsonResponse({'success': False, 'message': 'Nama dan email wajib diisi.'}, status=400)
@@ -1065,14 +1134,14 @@ def edit_user_view(request, id):
 
     parts = nama_lengkap.split(' ', 1)
     target.first_name = parts[0]
-    target.last_name  = parts[1] if len(parts) > 1 else ''
-    target.email      = email
+    target.last_name = parts[1] if len(parts) > 1 else ''
+    target.email = email
     if role == 'admin':
         target.is_superuser = True
-        target.is_staff     = True
+        target.is_staff = True
     elif role == 'staff':
         target.is_superuser = False
-        target.is_staff     = False
+        target.is_staff = False
     if status == 'aktif':
         target.is_active = True
     elif status == 'nonaktif':
@@ -1087,12 +1156,12 @@ def edit_user_view(request, id):
         'success': True,
         'message': 'User berhasil diperbarui.',
         'user': {
-            'id'      : target.id,
-            'nama'    : target.get_full_name() or target.username,
-            'email'   : target.email,
-            'jabatan' : profile.jabatan,
-            'role'    : 'Admin' if target.is_superuser else 'Staff',
-            'status'  : 'Aktif' if target.is_active else 'Nonaktif',
+            'id': target.id,
+            'nama': target.get_full_name() or target.username,
+            'email': target.email,
+            'jabatan': profile.jabatan,
+            'role': 'Admin' if target.is_superuser else 'Staff',
+            'status': 'Aktif' if target.is_active else 'Nonaktif',
         }
     })
 
@@ -1138,7 +1207,8 @@ def upload_foto_profil(request):
     # Validasi tipe file
     allowed_types = ['image/jpeg', 'image/jpg', 'image/png']
     if foto.content_type not in allowed_types:
-        messages.error(request, 'Format file tidak didukung. Harap gunakan hanya format JPG atau PNG.')
+        messages.error(
+            request, 'Format file tidak didukung. Harap gunakan hanya format JPG atau PNG.')
         return redirect('profil')
 
     # Validasi ukuran file (max 5MB)
@@ -1168,9 +1238,9 @@ def ganti_password_view(request):
     """Ganti password user sendiri"""
     from django.contrib.auth import update_session_auth_hash
 
-    password_lama  = request.POST.get('password_lama', '').strip()
-    password_baru  = request.POST.get('password_baru', '').strip()
-    konfirmasi     = request.POST.get('konfirmasi_password_baru', '').strip()
+    password_lama = request.POST.get('password_lama', '').strip()
+    password_baru = request.POST.get('password_baru', '').strip()
+    konfirmasi = request.POST.get('konfirmasi_password_baru', '').strip()
 
     if not request.user.check_password(password_lama):
         return JsonResponse({'success': False, 'message': 'Password lama tidak sesuai.'}, status=400)
@@ -1192,7 +1262,7 @@ def profil_view(request):
     if request.method == 'POST':
         from django.http import JsonResponse
         import traceback
-        
+
         try:
             # Get form data
             nama_lengkap = request.POST.get('nama_lengkap', '')
@@ -1201,12 +1271,13 @@ def profil_view(request):
             nip = request.POST.get('nip', '')
             telepon = request.POST.get('telepon', '')
             alamat = request.POST.get('alamat', '')
-            
-            print(f"Received data: nama={nama_lengkap}, email={email}, jabatan={jabatan}")
-            
+
+            print(
+                f"Received data: nama={nama_lengkap}, email={email}, jabatan={jabatan}")
+
             # Update User model
             user = request.user
-            
+
             # Split nama lengkap menjadi first_name dan last_name
             if nama_lengkap:
                 name_parts = nama_lengkap.strip().split(' ', 1)
@@ -1215,7 +1286,7 @@ def profil_view(request):
                     user.last_name = name_parts[1]
                 else:
                     user.last_name = ''
-            
+
             # Update email
             if email:
                 # Check if email already exists for other users
@@ -1225,10 +1296,10 @@ def profil_view(request):
                         'message': 'Email sudah digunakan oleh user lain!'
                     })
                 user.email = email
-            
+
             user.save()
             print(f"User saved: {user.get_full_name()}")
-            
+
             # Update or create UserProfile
             profile, created = UserProfile.objects.get_or_create(user=user)
             profile.jabatan = jabatan or ''
@@ -1237,7 +1308,7 @@ def profil_view(request):
             profile.alamat = alamat or ''
             profile.save()
             print(f"Profile saved: {profile.jabatan}")
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Profil berhasil diperbarui!',
@@ -1257,16 +1328,16 @@ def profil_view(request):
                 'success': False,
                 'message': f'Terjadi kesalahan: {str(e)}'
             })
-    
+
     # GET request - render template
     # Ensure user has a profile
     profile, created = UserProfile.objects.get_or_create(user=request.user)
-    
+
     context = {
         'user': request.user,
         'profile': profile
     }
-    
+
     if request.user.is_superuser:
         return render(request, 'accounts/admin/profil.html', context)
     else:
@@ -1278,19 +1349,20 @@ def dashboard_stats_api(request):
     """API terpadu untuk mengambil semua statistik dashboard secara riil"""
     range_type = request.GET.get('range', 'year')
     now = timezone.now()
-    
+
     # 1. Stats Cards & Summary (Untuk update Stat Cards & Progress Bars)
     total_masuk = SuratMasuk.objects.count()
     total_keluar = SuratKeluar.objects.count()
     pending_proses = SuratMasuk.objects.filter(status='diproses').count()
     surat_selesai = SuratMasuk.objects.filter(status='selesai').count()
-    
+
     masuk_baru = SuratMasuk.objects.filter(status='baru').count()
     sedang_diproses = pending_proses
     sk_menunggu = SuratKeluar.objects.filter(status='diajukan').count()
 
     def get_pct(count, total):
-        if not total or total == 0: return 0
+        if not total or total == 0:
+            return 0
         return int((count / total) * 100)
 
     stats = {
@@ -1319,43 +1391,50 @@ def dashboard_stats_api(request):
         start_date = now - timezone.timedelta(days=29)
     else:
         # Year
-        start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_date = now.replace(
+            month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
 
     # Use range query (BETWEEN) which Django optimizes perfectly without CONVERT_TZ
-    m_qs = list(SuratMasuk.objects.filter(tanggal_diterima__gte=start_date).values_list('tanggal_diterima', flat=True))
-    k_qs = list(SuratKeluar.objects.filter(tanggal_dibuat__gte=start_date).values_list('tanggal_dibuat', flat=True))
-    
+    m_qs = list(SuratMasuk.objects.filter(
+        tanggal_diterima__gte=start_date).values_list('tanggal_diterima', flat=True))
+    k_qs = list(SuratKeluar.objects.filter(
+        tanggal_dibuat__gte=start_date).values_list('tanggal_dibuat', flat=True))
+
     # Convert all to local date objects for easy counting
-    m_dates = [dt.astimezone(timezone.get_current_timezone()).date() for dt in m_qs if dt]
-    k_dates = [dt.astimezone(timezone.get_current_timezone()).date() for dt in k_qs if dt]
+    m_dates = [dt.astimezone(timezone.get_current_timezone()).date()
+               for dt in m_qs if dt]
+    k_dates = [dt.astimezone(timezone.get_current_timezone()).date()
+               for dt in k_qs if dt]
 
     if range_type == 'week':
-        days_id = {'Mon':'Sen', 'Tue':'Sel', 'Wed':'Rab', 'Thu':'Kam', 'Fri':'Jum', 'Sat':'Sab', 'Sun':'Min'}
+        days_id = {'Mon': 'Sen', 'Tue': 'Sel', 'Wed': 'Rab',
+                   'Thu': 'Kam', 'Fri': 'Jum', 'Sat': 'Sab', 'Sun': 'Min'}
         for i in range(6, -1, -1):
             d = (now - timezone.timedelta(days=i)).date()
             labels.append(days_id.get(d.strftime('%a'), d.strftime('%a')))
             masuk_data.append(m_dates.count(d))
             keluar_data.append(k_dates.count(d))
-            
+
     elif range_type == 'month':
         for i in range(29, -1, -1):
             d = (now - timezone.timedelta(days=i)).date()
             labels.append(d.strftime('%d/%m'))
             masuk_data.append(m_dates.count(d))
             keluar_data.append(k_dates.count(d))
-            
-    else: # Year
-        month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+    else:  # Year
+        month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei',
+                       'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
         labels = month_names
         masuk_data = [0] * 12
         keluar_data = [0] * 12
-        
+
         for dt in m_qs:
             if dt:
                 local_dt = dt.astimezone(timezone.get_current_timezone())
                 if local_dt.year == now.year:
                     masuk_data[local_dt.month - 1] += 1
-                    
+
         for dt in k_qs:
             if dt:
                 local_dt = dt.astimezone(timezone.get_current_timezone())
@@ -1373,27 +1452,29 @@ def dashboard_stats_api(request):
         }
     })
 
+
 @login_required
 def tracking_surat_api(request, id):
     surat = get_object_or_404(SuratMasuk, id=id)
-    
+
     if not request.user.is_superuser and surat.ditugaskan_ke != request.user:
         # Periksa apakah user adalah penerima disposisi dari surat ini
-        is_disposisi_receiver = surat.disposisi_list.filter(penerima_disposisi=request.user).exists()
+        is_disposisi_receiver = surat.disposisi_list.filter(
+            penerima_disposisi=request.user).exists()
         if not is_disposisi_receiver:
             return JsonResponse({'success': False, 'message': 'Akses ditolak.'}, status=403)
-            
+
     events = []
-    
+
     events.append({
         'title': 'Surat Diterima',
         'waktu': surat.tanggal_diterima.strftime('%d %b %Y, %H:%M WIB'),
         'aktor': surat.dibuat_oleh.get_full_name() or surat.dibuat_oleh.username if surat.dibuat_oleh else 'Admin',
         'status_color': 'blue'
     })
-    
+
     disposisi_list = surat.disposisi_list.all().order_by('tanggal_dibuat')
-    
+
     if not disposisi_list.exists():
         if surat.status == 'selesai':
             events.append({
@@ -1419,7 +1500,7 @@ def tracking_surat_api(request, id):
                 'catatan': disp.instruksi,
                 'status_color': 'indigo'
             })
-            
+
             if disp.tanggal_dibaca:
                 events.append({
                     'title': 'Dibaca oleh Staff',
@@ -1427,7 +1508,7 @@ def tracking_surat_api(request, id):
                     'aktor': disp.penerima_disposisi.get_full_name() or disp.penerima_disposisi.username,
                     'status_color': 'teal'
                 })
-                
+
             if disp.status == 'selesai' and disp.tanggal_selesai:
                 events.append({
                     'title': 'Disposisi Selesai',
@@ -1443,7 +1524,7 @@ def tracking_surat_api(request, id):
                     'aktor': disp.penerima_disposisi.get_full_name() or disp.penerima_disposisi.username,
                     'status_color': 'amber'
                 })
-        
+
         if surat.status == 'selesai':
             events.append({
                 'title': 'Surat Dinyatakan Selesai',
@@ -1451,13 +1532,9 @@ def tracking_surat_api(request, id):
                 'aktor': 'Sistem',
                 'status_color': 'emerald'
             })
-            
+
     return JsonResponse({'success': True, 'events': events})
 
-from .models import SuratKeluar
-from .utils import render_to_pdf
-from django.core.files.base import ContentFile
-from django.views.decorators.http import require_POST
 
 @login_required
 @require_POST
@@ -1471,10 +1548,10 @@ def generate_surat_keluar_pdf_view(request):
     isi_surat = request.POST.get('isi_surat', '').strip()
     jenis_surat = request.POST.get('jenis_surat', 'SU').strip()
     departemen = request.POST.get('departemen', 'GA').strip()
-    
+
     if not tujuan or not perihal or not isi_surat:
         return JsonResponse({'success': False, 'message': 'Tujuan, perihal, dan isi surat wajib diisi.'}, status=400)
-        
+
     # Buat instance sementara untuk mendapatkan nomor_surat
     # dan simpan ke DB dulu supaya ID/nomor ke-generate
     surat = SuratKeluar.objects.create(
@@ -1484,16 +1561,16 @@ def generate_surat_keluar_pdf_view(request):
         jenis_surat=jenis_surat,
         departemen=departemen,
         pembuat=request.user,
-        status='draft' # Atur status default
+        status='draft'  # Atur status default
     )
-    
+
     # Generate PDF
     context = {
         'surat': surat,
     }
-    
+
     pdf_bytes = render_to_pdf('accounts/surat_template.html', context)
-    
+
     if pdf_bytes:
         filename = f"Surat_Keluar_{surat.nomor_surat.replace('/', '_')}.pdf"
         surat.file_pdf_final.save(filename, ContentFile(pdf_bytes))
@@ -1502,4 +1579,3 @@ def generate_surat_keluar_pdf_view(request):
     else:
         # Jika gagal, tetap simpan textnya tapi kembalikan pesan error
         return JsonResponse({'success': False, 'message': 'Gagal generate PDF. Data text berhasil disimpan.'}, status=500)
-

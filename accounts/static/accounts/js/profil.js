@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(formPass);
             const csrfToken = formPass.querySelector('[name=csrfmiddlewaretoken]').value;
 
-            fetch('/accounts/profil/ganti-password/', {
+            fetch('/profil/ganti-password/', {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,

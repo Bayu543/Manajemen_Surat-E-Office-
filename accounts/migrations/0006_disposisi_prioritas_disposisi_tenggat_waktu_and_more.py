@@ -13,21 +13,25 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disposisi',
             name='prioritas',
-            field=models.CharField(choices=[('biasa', 'Biasa'), ('segera', 'Segera')], default='biasa', max_length=20, verbose_name='Prioritas'),
+            field=models.CharField(choices=[('biasa', 'Biasa'), (
+                'segera', 'Segera')], default='biasa', max_length=20, verbose_name='Prioritas'),
         ),
         migrations.AddField(
             model_name='disposisi',
             name='tenggat_waktu',
-            field=models.DateField(blank=True, null=True, verbose_name='Tenggat Waktu'),
+            field=models.DateField(blank=True, null=True,
+                                   verbose_name='Tenggat Waktu'),
         ),
         migrations.AddField(
             model_name='suratmasuk',
             name='prioritas',
-            field=models.CharField(choices=[('biasa', 'Biasa'), ('segera', 'Segera')], default='biasa', max_length=20, verbose_name='Prioritas'),
+            field=models.CharField(choices=[('biasa', 'Biasa'), (
+                'segera', 'Segera')], default='biasa', max_length=20, verbose_name='Prioritas'),
         ),
         migrations.AddField(
             model_name='suratmasuk',
             name='tenggat_waktu',
-            field=models.DateField(blank=True, null=True, verbose_name='Tenggat Waktu'),
+            field=models.DateField(blank=True, null=True,
+                                   verbose_name='Tenggat Waktu'),
         ),
     ]

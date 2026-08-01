@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const nomorEl = document.getElementById('hapusNomorSurat');
         if (nomorEl) nomorEl.textContent = nomor;
         const formEl = document.getElementById('formHapusSurat');
-        if (formEl) formEl.action = `/accounts/surat-masuk/${id}/hapus/`;
+        if (formEl) formEl.action = `/surat-masuk/${id}/hapus/`;
         const modal = document.getElementById('modalKonfirmasiHapus');
         if (modal) {
             modal.classList.remove('hidden');
@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!id) return;
 
             const formData = new FormData(this);
-            fetch(`/accounts/surat-masuk/${id}/edit/`, {
+            fetch(`/surat-masuk/${id}/edit/`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -1140,7 +1140,7 @@ $(document).ready(function() {
             if (timeline) timeline.innerHTML = '';
             if (loading) loading.classList.remove('hidden');
 
-            fetch(`/accounts/surat-masuk/${id}/tracking/`, {
+            fetch(`/surat-masuk/${id}/tracking/`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }

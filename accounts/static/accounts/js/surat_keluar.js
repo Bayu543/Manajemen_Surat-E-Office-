@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const csrfToken = getCookie('csrftoken');
             
-            fetch(`/accounts/surat-keluar/${targetId}/setujui/`, {
+            fetch(`/surat-keluar/${targetId}/setujui/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('catatan_revisi', catatan);
             
-            fetch(`/accounts/surat-keluar/${targetId}/tolak/`, {
+            fetch(`/surat-keluar/${targetId}/tolak/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,

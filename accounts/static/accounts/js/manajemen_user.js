@@ -139,7 +139,7 @@ function initializeModals() {
             formData.append('password', 'eoffice123');
             formData.append('konfirmasi_password', 'eoffice123');
 
-            fetch('/accounts/manajemen-user/tambah/', {
+            fetch('/manajemen-user/tambah/', {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -276,7 +276,7 @@ function initializeModals() {
             formData.append('role', document.getElementById('edit_role').value);
             formData.append('status', document.getElementById('edit_status').value);
 
-            fetch(`/accounts/manajemen-user/${currentUserId}/edit/`, {
+            fetch(`/manajemen-user/${currentUserId}/edit/`, {
                 method: 'POST',
                 body: formData,
                 headers: {
@@ -404,7 +404,7 @@ function initializeModals() {
         btnConfirmHapus.addEventListener('click', function() {
             if (!currentUserId) return;
 
-            fetch(`/accounts/manajemen-user/${currentUserId}/hapus/`, {
+            fetch(`/manajemen-user/${currentUserId}/hapus/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCsrfToken()
@@ -460,7 +460,7 @@ function initializeModals() {
             const isConfirmed = confirm("Apakah Anda yakin ingin mengatur ulang sandi pengguna ini ke kata sandi bawaan ('eoffice123')?");
             if (!isConfirmed) return;
 
-            fetch(`/accounts/manajemen-user/${currentUserId}/reset-password/`, {
+            fetch(`/manajemen-user/${currentUserId}/reset-password/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCsrfToken()

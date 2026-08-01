@@ -1,7 +1,5 @@
 from django.contrib import admin
-from django.contrib.auth.models import User
-from django.contrib.auth.admin import UserAdmin
-from .models import SuratMasuk, UserProfile, SuratKeluar
+from .models import SuratMasuk, UserProfile, SuratKeluar, Disposisi
 
 # Customize admin site headers
 admin.site.site_header = "E-Office Administration"
@@ -23,27 +21,27 @@ class SuratMasukAdmin(admin.ModelAdmin):
         'status',
         'ditugaskan_ke',
     ]
-    
+
     list_filter = [
         'status',
         'tanggal_diterima',
         'tanggal_surat',
         'ditugaskan_ke',
     ]
-    
+
     search_fields = [
         'nomor_surat',
         'pengirim',
         'perihal',
     ]
-    
+
     readonly_fields = [
         'tanggal_diterima',
         'dibuat_pada',
         'diupdate_pada',
         'dibuat_oleh',
     ]
-    
+
     fieldsets = (
         ('Informasi Surat', {
             'fields': (
@@ -51,6 +49,8 @@ class SuratMasukAdmin(admin.ModelAdmin):
                 'pengirim',
                 'perihal',
                 'tanggal_surat',
+                'prioritas',
+                'tenggat_waktu',
             )
         }),
         ('File & Status', {
@@ -71,13 +71,14 @@ class SuratMasukAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
-    
+
     date_hierarchy = 'tanggal_diterima'
-    
+
     ordering = ['-tanggal_diterima']
-    
+
     list_per_page = 25
-    
+
+    @admin.display(description='Perihal')
     def perihal_short(self, obj):
         """
         Menampilkan perihal yang dipotong jika terlalu panjang
@@ -85,8 +86,7 @@ class SuratMasukAdmin(admin.ModelAdmin):
         if len(obj.perihal) > 50:
             return obj.perihal[:50] + '...'
         return obj.perihal
-    perihal_short.short_description = 'Perihal'
-    
+
     def save_model(self, request, obj, form, change):
         """
         Override save_model untuk menyimpan user yang membuat/mengupdate
@@ -107,7 +107,7 @@ class UserProfileAdmin(admin.ModelAdmin):
         'jabatan',
         'phone',
     ]
-    
+
     search_fields = [
         'user__username',
         'user__email',
@@ -116,11 +116,11 @@ class UserProfileAdmin(admin.ModelAdmin):
         'nip',
         'jabatan',
     ]
-    
+
     list_filter = [
         'jabatan',
     ]
-    
+
     fieldsets = (
         ('User', {
             'fields': ('user',)
@@ -135,8 +135,9 @@ class UserProfileAdmin(admin.ModelAdmin):
             )
         }),
     )
-    
+
     list_per_page = 25
+
 
 @admin.register(SuratKeluar)
 class SuratKeluarAdmin(admin.ModelAdmin):
@@ -153,26 +154,26 @@ class SuratKeluarAdmin(admin.ModelAdmin):
         'pembuat',
         'tanggal_dibuat',
     ]
-    
+
     list_filter = [
         'status',
         'jenis_surat',
         'departemen',
         'tanggal_dibuat',
     ]
-    
+
     search_fields = [
         'nomor_surat',
         'tujuan',
         'perihal',
     ]
-    
+
     readonly_fields = [
         'nomor_surat',
         'tanggal_dibuat',
         'tanggal_diupdate',
     ]
-    
+
     fieldsets = (
         ('Informasi Surat', {
             'fields': (
@@ -198,13 +199,80 @@ class SuratKeluarAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
-    
+
     date_hierarchy = 'tanggal_dibuat'
     ordering = ['-tanggal_dibuat']
     list_per_page = 25
 
+    @admin.display(description='Perihal')
     def perihal_short(self, obj):
         if len(obj.perihal) > 50:
             return obj.perihal[:50] + '...'
         return obj.perihal
-    perihal_short.short_description = 'Perihal'
+
+
+@admin.register(Disposisi)
+class DisposisiAdmin(admin.ModelAdmin):
+    """
+    Admin interface untuk model Disposisi
+    """
+    list_display = [
+        'surat',
+        'pemberi_disposisi',
+        'penerima_disposisi',
+        'prioritas',
+        'status',
+        'tanggal_dibuat',
+        'tenggat_waktu',
+    ]
+
+    list_filter = [
+        'status',
+        'prioritas',
+        'tanggal_dibuat',
+    ]
+
+    search_fields = [
+        'surat__nomor_surat',
+        'instruksi',
+        'penerima_disposisi__username',
+        'pemberi_disposisi__username',
+    ]
+
+    readonly_fields = [
+        'tanggal_dibuat',
+        'tanggal_dibaca',
+        'tanggal_selesai',
+    ]
+
+    fieldsets = (
+        ('Informasi Disposisi', {
+            'fields': (
+                'surat',
+                'pemberi_disposisi',
+                'penerima_disposisi',
+                'instruksi',
+                'prioritas',
+                'tenggat_waktu',
+            )
+        }),
+        ('Status & Penyelesaian', {
+            'fields': (
+                'status',
+                'catatan_penyelesaian',
+                'file_bukti',
+            )
+        }),
+        ('Metadata', {
+            'fields': (
+                'tanggal_dibuat',
+                'tanggal_dibaca',
+                'tanggal_selesai',
+            ),
+            'classes': ('collapse',),
+        }),
+    )
+
+    date_hierarchy = 'tanggal_dibuat'
+    ordering = ['-tanggal_dibuat']
+    list_per_page = 25

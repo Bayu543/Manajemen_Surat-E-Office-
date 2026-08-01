@@ -17,12 +17,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nip', models.CharField(blank=True, max_length=20, verbose_name='NIP')),
-                ('jabatan', models.CharField(blank=True, max_length=100, verbose_name='Jabatan')),
-                ('phone', models.CharField(blank=True, max_length=20, verbose_name='No. Telepon')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('nip', models.CharField(blank=True,
+                 max_length=20, verbose_name='NIP')),
+                ('jabatan', models.CharField(blank=True,
+                 max_length=100, verbose_name='Jabatan')),
+                ('phone', models.CharField(blank=True,
+                 max_length=20, verbose_name='No. Telepon')),
                 ('alamat', models.TextField(blank=True, verbose_name='Alamat')),
-                ('foto_profil', models.ImageField(blank=True, null=True, upload_to='profile_photos/', verbose_name='Foto Profil')),
+                ('foto_profil', models.ImageField(blank=True, null=True,
+                 upload_to='profile_photos/', verbose_name='Foto Profil')),
             ],
             options={
                 'verbose_name': 'Profil User',
@@ -31,84 +36,101 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='suratmasuk',
-            options={'ordering': ['-tanggal_diterima'], 'verbose_name': 'Surat Masuk', 'verbose_name_plural': 'Surat Masuk'},
+            options={'ordering': [
+                '-tanggal_diterima'], 'verbose_name': 'Surat Masuk', 'verbose_name_plural': 'Surat Masuk'},
         ),
         migrations.AddField(
             model_name='suratmasuk',
             name='catatan',
-            field=models.TextField(blank=True, help_text='Catatan tambahan terkait surat', null=True, verbose_name='Catatan'),
+            field=models.TextField(
+                blank=True, help_text='Catatan tambahan terkait surat', null=True, verbose_name='Catatan'),
         ),
         migrations.AddField(
             model_name='suratmasuk',
             name='file_surat',
-            field=models.FileField(blank=True, help_text='Upload file surat (PDF, DOCX, atau gambar)', null=True, upload_to='surat_masuk/', verbose_name='File Surat'),
+            field=models.FileField(blank=True, help_text='Upload file surat (PDF, DOCX, atau gambar)',
+                                   null=True, upload_to='surat_masuk/', verbose_name='File Surat'),
         ),
         migrations.AddField(
             model_name='suratmasuk',
             name='tanggal_diterima',
-            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now, help_text='Tanggal surat diterima di sistem', verbose_name='Tanggal Diterima'),
+            field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now,
+                                       help_text='Tanggal surat diterima di sistem', verbose_name='Tanggal Diterima'),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='dibuat_oleh',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='surat_masuk_dibuat', to=settings.AUTH_USER_MODEL, verbose_name='Dibuat Oleh'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    related_name='surat_masuk_dibuat', to=settings.AUTH_USER_MODEL, verbose_name='Dibuat Oleh'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='dibuat_pada',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='Dibuat Pada'),
+            field=models.DateTimeField(
+                auto_now_add=True, verbose_name='Dibuat Pada'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='ditugaskan_ke',
-            field=models.ForeignKey(blank=True, help_text='Staff yang ditugaskan untuk menangani surat ini', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='surat_masuk_ditugaskan', to=settings.AUTH_USER_MODEL, verbose_name='Ditugaskan Ke'),
+            field=models.ForeignKey(blank=True, help_text='Staff yang ditugaskan untuk menangani surat ini', null=True,
+                                    on_delete=django.db.models.deletion.SET_NULL, related_name='surat_masuk_ditugaskan', to=settings.AUTH_USER_MODEL, verbose_name='Ditugaskan Ke'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='diupdate_pada',
-            field=models.DateTimeField(auto_now=True, verbose_name='Diupdate Pada'),
+            field=models.DateTimeField(
+                auto_now=True, verbose_name='Diupdate Pada'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='nomor_surat',
-            field=models.CharField(help_text='Nomor surat resmi (contoh: 001/SM/IV/2026)', max_length=100, unique=True, verbose_name='Nomor Surat'),
+            field=models.CharField(help_text='Nomor surat resmi (contoh: 001/SM/IV/2026)',
+                                   max_length=100, unique=True, verbose_name='Nomor Surat'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='pengirim',
-            field=models.CharField(help_text='Nama instansi atau organisasi pengirim', max_length=200, verbose_name='Pengirim'),
+            field=models.CharField(
+                help_text='Nama instansi atau organisasi pengirim', max_length=200, verbose_name='Pengirim'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='perihal',
-            field=models.TextField(help_text='Perihal atau subjek surat', verbose_name='Perihal'),
+            field=models.TextField(
+                help_text='Perihal atau subjek surat', verbose_name='Perihal'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='status',
-            field=models.CharField(choices=[('baru', 'Baru'), ('diproses', 'Diproses'), ('selesai', 'Selesai')], default='baru', help_text='Status pemrosesan surat', max_length=20, verbose_name='Status'),
+            field=models.CharField(choices=[('baru', 'Baru'), ('diproses', 'Diproses'), ('selesai', 'Selesai')],
+                                   default='baru', help_text='Status pemrosesan surat', max_length=20, verbose_name='Status'),
         ),
         migrations.AlterField(
             model_name='suratmasuk',
             name='tanggal_surat',
-            field=models.DateField(help_text='Tanggal yang tertera pada surat', verbose_name='Tanggal Surat'),
+            field=models.DateField(
+                help_text='Tanggal yang tertera pada surat', verbose_name='Tanggal Surat'),
         ),
         migrations.AddIndex(
             model_name='suratmasuk',
-            index=models.Index(fields=['nomor_surat'], name='accounts_su_nomor_s_2d3979_idx'),
+            index=models.Index(fields=['nomor_surat'],
+                               name='accounts_su_nomor_s_2d3979_idx'),
         ),
         migrations.AddIndex(
             model_name='suratmasuk',
-            index=models.Index(fields=['status'], name='accounts_su_status_22c8a6_idx'),
+            index=models.Index(fields=['status'],
+                               name='accounts_su_status_22c8a6_idx'),
         ),
         migrations.AddIndex(
             model_name='suratmasuk',
-            index=models.Index(fields=['-tanggal_diterima'], name='accounts_su_tanggal_9f6be0_idx'),
+            index=models.Index(
+                fields=['-tanggal_diterima'], name='accounts_su_tanggal_9f6be0_idx'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE, related_name='profile', to=settings.AUTH_USER_MODEL),
         ),
     ]

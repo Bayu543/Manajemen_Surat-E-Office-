@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const disposisiId = row.getAttribute('data-id');
         if (!disposisiId) return;
 
-        fetch(`/accounts/disposisi/${disposisiId}/detail/`)
+        fetch(`/disposisi/${disposisiId}/detail/`)
             .then(response => response.json())
             .then(res => {
                 if (!res.success) {
@@ -238,7 +238,7 @@ window.openUpdateModal = function(id, nomor, currentStatus) {
     // Reset Form
     const form = document.getElementById('formUpdateDisposisi');
     form.reset();
-    form.setAttribute('action', `/accounts/disposisi/${id}/update-status/`);
+    form.setAttribute('action', `/disposisi/${id}/update-status/`);
     
     document.getElementById('updateNomorSurat').textContent = nomor;
     document.getElementById('fileNamePlaceholder').textContent = 'Pilih file bukti dokumen';

@@ -13,11 +13,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='disposisi',
             name='catatan_penyelesaian',
-            field=models.TextField(blank=True, help_text='Catatan dari staff saat menyelesaikan disposisi', null=True, verbose_name='Catatan Penyelesaian'),
+            field=models.TextField(blank=True, help_text='Catatan dari staff saat menyelesaikan disposisi',
+                                   null=True, verbose_name='Catatan Penyelesaian'),
         ),
         migrations.AddField(
             model_name='disposisi',
             name='file_bukti',
-            field=models.FileField(blank=True, help_text='Bukti file kerja dari staff', null=True, upload_to='bukti_disposisi/', verbose_name='File Bukti Penyelesaian'),
+            field=models.FileField(blank=True, help_text='Bukti file kerja dari staff', null=True,
+                                   upload_to='bukti_disposisi/', verbose_name='File Bukti Penyelesaian'),
         ),
     ]

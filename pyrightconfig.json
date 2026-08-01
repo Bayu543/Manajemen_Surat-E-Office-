@@ -1,0 +1,25 @@
+{
+  "venvPath": "C:\\eoffice",
+  "venv": "venv314",
+  "pythonVersion": "3.14",
+  "pythonPlatform": "Windows",
+  "typeCheckingMode": "off",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "reportUndefinedVariable": "warning",
+  "include": [
+    "accounts",
+    "eoffice",
+    "manage.py"
+  ],
+  "exclude": [
+    "venv314",
+    "venv",
+    ".venv",
+    "venv314/**",
+    "**/migrations/**",
+    "**/__pycache__/**",
+    "**/*.pyc"
+  ]
+}

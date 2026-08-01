@@ -1,6 +1,7 @@
 from django.urls import reverse
 from accounts.models import Disposisi, SuratKeluar, SuratMasuk
 
+
 def get_user_notifications(user):
     if not user.is_authenticated:
         return {
@@ -13,9 +14,10 @@ def get_user_notifications(user):
 
     if user.is_superuser:
         # Admin: Surat Keluar yang baru diajukan oleh staff
-        notif_items = SuratKeluar.objects.filter(status='diajukan').select_related('pembuat').order_by('-tanggal_dibuat')[:10]
+        notif_items = SuratKeluar.objects.filter(status='diajukan').select_related(
+            'pembuat').order_by('-tanggal_dibuat')[:10]
         unread_count = SuratKeluar.objects.filter(status='diajukan').count()
-        
+
         for notif in notif_items:
             recent.append({
                 'id': notif.id,
@@ -29,9 +31,11 @@ def get_user_notifications(user):
     else:
         # Staff:
         # 1. Disposisi baru (Surat Masuk)
-        disposisi_items = Disposisi.objects.filter(penerima_disposisi=user, status='baru').select_related('surat', 'pemberi_disposisi').order_by('-tanggal_dibuat')[:10]
-        disposisi_count = Disposisi.objects.filter(penerima_disposisi=user, status='baru').count()
-        
+        disposisi_items = Disposisi.objects.filter(penerima_disposisi=user, status='baru').select_related(
+            'surat', 'pemberi_disposisi').order_by('-tanggal_dibuat')[:10]
+        disposisi_count = Disposisi.objects.filter(
+            penerima_disposisi=user, status='baru').count()
+
         for notif in disposisi_items:
             recent.append({
                 'id': notif.id,
@@ -44,9 +48,11 @@ def get_user_notifications(user):
             })
 
         # 2. Surat Masuk baru ditugaskan langsung
-        surat_masuk_items = SuratMasuk.objects.filter(ditugaskan_ke=user, status='baru').select_related('dibuat_oleh').order_by('-tanggal_diterima')[:10]
-        surat_masuk_count = SuratMasuk.objects.filter(ditugaskan_ke=user, status='baru').count()
-        
+        surat_masuk_items = SuratMasuk.objects.filter(ditugaskan_ke=user, status='baru').select_related(
+            'dibuat_oleh').order_by('-tanggal_diterima')[:10]
+        surat_masuk_count = SuratMasuk.objects.filter(
+            ditugaskan_ke=user, status='baru').count()
+
         for notif in surat_masuk_items:
             recent.append({
                 'id': notif.id,
@@ -59,7 +65,8 @@ def get_user_notifications(user):
             })
 
         # 3. Surat Keluar disetujui (Konsep disetujui)
-        surat_keluar_items = SuratKeluar.objects.filter(pembuat=user, status='disetujui').order_by('-tanggal_diupdate')[:10]
+        surat_keluar_items = SuratKeluar.objects.filter(
+            pembuat=user, status='disetujui').order_by('-tanggal_diupdate')[:10]
         for notif in surat_keluar_items:
             recent.append({
                 'id': notif.id,
@@ -81,8 +88,8 @@ def get_user_notifications(user):
         'recent_notifications': recent
     }
 
+
 def notifications(request):
     if not request.user.is_authenticated:
         return {}
     return get_user_notifications(request.user)
-

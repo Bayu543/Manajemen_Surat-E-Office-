@@ -16,15 +16,24 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='SuratKeluar',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nomor_surat', models.CharField(blank=True, help_text='Bisa dikosongkan jika belum mendapat nomor dari Admin', max_length=100, null=True, verbose_name='Nomor Surat')),
-                ('tujuan', models.CharField(help_text='Instansi atau orang yang dituju', max_length=200, verbose_name='Tujuan Surat')),
-                ('perihal', models.TextField(help_text='Perihal atau subjek surat keluar', verbose_name='Perihal')),
-                ('file_draf', models.FileField(help_text='Upload file draf surat (PDF, DOCX)', upload_to='surat_keluar_draf/', verbose_name='File Draf')),
-                ('status', models.CharField(choices=[('draft', 'Draft'), ('diajukan', 'Diajukan'), ('disetujui', 'Disetujui')], default='draft', max_length=20, verbose_name='Status')),
-                ('tanggal_dibuat', models.DateTimeField(auto_now_add=True, verbose_name='Tanggal Dibuat')),
-                ('tanggal_diupdate', models.DateTimeField(auto_now=True, verbose_name='Diupdate Pada')),
-                ('pembuat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='draft_surat_keluar', to=settings.AUTH_USER_MODEL, verbose_name='Pembuat')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
+                ('nomor_surat', models.CharField(blank=True, help_text='Bisa dikosongkan jika belum mendapat nomor dari Admin',
+                 max_length=100, null=True, verbose_name='Nomor Surat')),
+                ('tujuan', models.CharField(help_text='Instansi atau orang yang dituju',
+                 max_length=200, verbose_name='Tujuan Surat')),
+                ('perihal', models.TextField(
+                    help_text='Perihal atau subjek surat keluar', verbose_name='Perihal')),
+                ('file_draf', models.FileField(help_text='Upload file draf surat (PDF, DOCX)',
+                 upload_to='surat_keluar_draf/', verbose_name='File Draf')),
+                ('status', models.CharField(choices=[('draft', 'Draft'), ('diajukan', 'Diajukan'), (
+                    'disetujui', 'Disetujui')], default='draft', max_length=20, verbose_name='Status')),
+                ('tanggal_dibuat', models.DateTimeField(
+                    auto_now_add=True, verbose_name='Tanggal Dibuat')),
+                ('tanggal_diupdate', models.DateTimeField(
+                    auto_now=True, verbose_name='Diupdate Pada')),
+                ('pembuat', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                 related_name='draft_surat_keluar', to=settings.AUTH_USER_MODEL, verbose_name='Pembuat')),
             ],
             options={
                 'verbose_name': 'Surat Keluar',

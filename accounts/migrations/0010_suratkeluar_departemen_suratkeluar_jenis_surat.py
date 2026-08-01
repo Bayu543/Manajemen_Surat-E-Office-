@@ -13,11 +13,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='suratkeluar',
             name='departemen',
-            field=models.CharField(choices=[('IT', 'Information Technology'), ('HR', 'Human Resources'), ('GA', 'General Affairs'), ('FIN', 'Finance')], default='GA', max_length=10, verbose_name='Departemen'),
+            field=models.CharField(choices=[('IT', 'Information Technology'), ('HR', 'Human Resources'), (
+                'GA', 'General Affairs'), ('FIN', 'Finance')], default='GA', max_length=10, verbose_name='Departemen'),
         ),
         migrations.AddField(
             model_name='suratkeluar',
             name='jenis_surat',
-            field=models.CharField(choices=[('SK', 'Surat Keputusan'), ('SE', 'Surat Edaran'), ('SP', 'Surat Pemberitahuan'), ('SU', 'Surat Undangan')], default='SU', max_length=10, verbose_name='Jenis Surat'),
+            field=models.CharField(choices=[('SK', 'Surat Keputusan'), ('SE', 'Surat Edaran'), ('SP', 'Surat Pemberitahuan'), (
+                'SU', 'Surat Undangan')], default='SU', max_length=10, verbose_name='Jenis Surat'),
         ),
     ]

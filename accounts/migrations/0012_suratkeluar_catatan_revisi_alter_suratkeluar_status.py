@@ -13,11 +13,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='suratkeluar',
             name='catatan_revisi',
-            field=models.TextField(blank=True, help_text='Catatan dari Admin jika surat dikembalikan untuk direvisi', null=True, verbose_name='Catatan Revisi'),
+            field=models.TextField(
+                blank=True, help_text='Catatan dari Admin jika surat dikembalikan untuk direvisi', null=True, verbose_name='Catatan Revisi'),
         ),
         migrations.AlterField(
             model_name='suratkeluar',
             name='status',
-            field=models.CharField(choices=[('draft', 'Draft'), ('diajukan', 'Diajukan'), ('revisi', 'Revisi'), ('disetujui', 'Disetujui')], default='draft', max_length=20, verbose_name='Status'),
+            field=models.CharField(choices=[('draft', 'Draft'), ('diajukan', 'Diajukan'), ('revisi', 'Revisi'), (
+                'disetujui', 'Disetujui')], default='draft', max_length=20, verbose_name='Status'),
         ),
     ]
