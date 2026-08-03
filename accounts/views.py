@@ -282,16 +282,27 @@ def dashboard_view(request):
     """View untuk dashboard setelah login"""
     from datetime import datetime
 
-    # Statistik Dasar
-    total_masuk = SuratMasuk.objects.count()
-    total_keluar = SuratKeluar.objects.count()
-    pending_proses = SuratMasuk.objects.filter(status='diproses').count()
-    surat_selesai = SuratMasuk.objects.filter(status='selesai').count()
+    # Statistik Dasar dengan Aggregate (Jauh lebih cepat karena mengurangi ping ke DB)
+    sm_stats = SuratMasuk.objects.aggregate(
+        total=Count('id'),
+        pending=Count('id', filter=Q(status='diproses')),
+        selesai=Count('id', filter=Q(status='selesai')),
+        baru=Count('id', filter=Q(status='baru'))
+    )
+    sk_stats = SuratKeluar.objects.aggregate(
+        total=Count('id'),
+        menunggu=Count('id', filter=Q(status='diajukan'))
+    )
+
+    total_masuk = sm_stats['total']
+    total_keluar = sk_stats['total']
+    pending_proses = sm_stats['pending']
+    surat_selesai = sm_stats['selesai']
 
     # Statistik Detail untuk Ringkasan Status
-    masuk_baru = SuratMasuk.objects.filter(status='baru').count()
-    sedang_diproses = pending_proses
-    sk_menunggu = SuratKeluar.objects.filter(status='diajukan').count()
+    masuk_baru = sm_stats['baru']
+    sedang_diproses = sm_stats['pending']
+    sk_menunggu = sk_stats['menunggu']
 
     # Hitung Persentase untuk Progress Bar
     def get_pct(count, total):
