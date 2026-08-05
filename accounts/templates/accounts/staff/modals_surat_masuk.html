@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const id = document.getElementById('editSuratId').value;
             const formData = new FormData(this);
             
-            fetch(`/accounts/surat-masuk/${id}/status/`, {
+            fetch(`/surat-masuk/${id}/status/`, {
                 method: 'POST',
                 body: formData,
                 headers: {

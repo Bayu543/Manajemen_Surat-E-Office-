@@ -348,7 +348,7 @@
             selectEl.disabled = true;
             selectEl.classList.add('opacity-50');
 
-            fetch(`/accounts/surat-masuk/${id}/status/`, {
+            fetch(`/surat-masuk/${id}/status/`, {
                 method: 'POST',
                 body: formData,
                 headers: {
